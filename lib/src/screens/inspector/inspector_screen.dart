@@ -31,6 +31,8 @@ const meals = [
   ),
 ];
 
+enum CalendarView { month, week }
+
 class InspectorScreen extends StatefulWidget {
   const InspectorScreen({super.key});
 
@@ -41,6 +43,7 @@ class InspectorScreen extends StatefulWidget {
 class _InspectorScreenState extends State<InspectorScreen> {
   DateTime? _selectedDate;
   Meal _selectedMeal = meals[2]; // Default to Spaghetti
+  CalendarView _calendarView = CalendarView.month;
 
   void _onDateSelected(DateTime date) {
     setState(() {
@@ -60,6 +63,12 @@ class _InspectorScreenState extends State<InspectorScreen> {
     });
   }
 
+  void _onCalendarViewChanged(CalendarView view) {
+    setState(() {
+      _calendarView = view;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -70,7 +79,11 @@ class _InspectorScreenState extends State<InspectorScreen> {
         children: [
           Expanded(
             child: _selectedDate == null
-                ? CalendarWidget(onDateSelected: _onDateSelected)
+                ? CalendarWidget(
+                    onDateSelected: _onDateSelected,
+                    initialView: _calendarView,
+                    onViewChanged: _onCalendarViewChanged,
+                  )
                 : DailyMealPlan(
                     date: _selectedDate!,
                     onTap: _showCalendar,
@@ -150,15 +163,74 @@ class DailyMealPlan extends StatelessWidget {
 }
 
 class CalendarWidget extends StatefulWidget {
-  const CalendarWidget({super.key, required this.onDateSelected});
+  const CalendarWidget({
+    super.key,
+    required this.onDateSelected,
+    required this.initialView,
+    required this.onViewChanged,
+  });
 
   final ValueChanged<DateTime> onDateSelected;
+  final CalendarView initialView;
+  final ValueChanged<CalendarView> onViewChanged;
 
   @override
   State<CalendarWidget> createState() => _CalendarWidgetState();
 }
 
 class _CalendarWidgetState extends State<CalendarWidget> {
+  late CalendarView _view;
+
+  @override
+  void initState() {
+    super.initState();
+    _view = widget.initialView;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ToggleButtons(
+          isSelected: [_view == CalendarView.month, _view == CalendarView.week],
+          onPressed: (index) {
+            final newView = index == 0 ? CalendarView.month : CalendarView.week;
+            setState(() {
+              _view = newView;
+            });
+            widget.onViewChanged(newView);
+          },
+          children: const [
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('Month'),
+            ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Text('Week'),
+            ),
+          ],
+        ),
+        Expanded(
+          child: _view == CalendarView.month
+              ? MonthViewWidget(onDateSelected: widget.onDateSelected)
+              : WeekViewWidget(onDateSelected: widget.onDateSelected),
+        ),
+      ],
+    );
+  }
+}
+
+class MonthViewWidget extends StatefulWidget {
+  const MonthViewWidget({super.key, required this.onDateSelected});
+
+  final ValueChanged<DateTime> onDateSelected;
+
+  @override
+  State<MonthViewWidget> createState() => _MonthViewWidgetState();
+}
+
+class _MonthViewWidgetState extends State<MonthViewWidget> {
   final _pageController = PageController(initialPage: DateTime.now().month - 1);
   late String _monthName;
   late int _currentMonth;
@@ -227,6 +299,90 @@ class _CalendarWidgetState extends State<CalendarWidget> {
               return GridView.count(
                 crossAxisCount: 7,
                 children: calendarItems,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class WeekViewWidget extends StatefulWidget {
+  const WeekViewWidget({super.key, required this.onDateSelected});
+
+  final ValueChanged<DateTime> onDateSelected;
+
+  @override
+  State<WeekViewWidget> createState() => _WeekViewWidgetState();
+}
+
+class _WeekViewWidgetState extends State<WeekViewWidget> {
+  late final PageController _pageController;
+  late DateTime _currentWeekStart;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    final firstDayOf2025 = DateTime(2025);
+    final firstMondayOfYear =
+        firstDayOf2025.subtract(Duration(days: firstDayOf2025.weekday - 1));
+
+    int initialPage = 0;
+    if (now.year == 2025) {
+      initialPage = (now.difference(firstMondayOfYear).inDays / 7).floor();
+    }
+    if (initialPage < 0) initialPage = 0;
+    if (initialPage > 52) initialPage = 52;
+
+    _pageController = PageController(initialPage: initialPage);
+    _currentWeekStart = firstMondayOfYear.add(Duration(days: initialPage * 7));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final weekEnd = _currentWeekStart.add(const Duration(days: 6));
+    final formatter = DateFormat('MMM d');
+    final headerText = '${formatter.format(_currentWeekStart)} - ${formatter.format(weekEnd)}';
+
+    return Column(
+      children: [
+        Text(headerText),
+        const SizedBox(height: 16),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: 53, // A year can span 53 weeks
+            onPageChanged: (index) {
+              final firstDayOfYear = DateTime(2025);
+              final firstMondayOfYear =
+                  firstDayOfYear.subtract(Duration(days: firstDayOfYear.weekday - 1));
+              setState(() {
+                _currentWeekStart = firstMondayOfYear.add(Duration(days: index * 7));
+              });
+            },
+            itemBuilder: (context, index) {
+              final firstDayOfYear = DateTime(2025);
+              final firstMondayOfYear =
+                  firstDayOfYear.subtract(Duration(days: firstDayOfYear.weekday - 1));
+              final firstDayOfWeek = firstMondayOfYear.add(Duration(days: index * 7));
+
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(7, (dayIndex) {
+                  final date = firstDayOfWeek.add(Duration(days: dayIndex));
+                  return InkWell(
+                    onTap: () => widget.onDateSelected(date),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(DateFormat('E').format(date)), // Day of week (e.g., Mon)
+                        Text('${date.day}'),
+                      ],
+                    ),
+                  );
+                }),
               );
             },
           ),
