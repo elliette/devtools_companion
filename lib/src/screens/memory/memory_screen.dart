@@ -1,12 +1,195 @@
-import 'package:flutter/widgets.dart';
+import 'dart:async';
+import 'dart:math';
 
-import '../../shared/widgets/todo_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import 'package:system_info2/system_info2.dart';
 
-class MemoryScreen extends StatelessWidget {
+class MemoryScreen extends StatefulWidget {
   const MemoryScreen({super.key});
 
   @override
+  State<MemoryScreen> createState() => _MemoryScreenState();
+}
+
+class _MemoryScreenState extends State<MemoryScreen> {
+  late final TextEditingController _objectCountController;
+  late final TextEditingController _minSizeController;
+  late final TextEditingController _maxSizeController;
+
+  final _allocatedObjects = <String>[];
+  final _random = Random();
+
+  Timer? _timer;
+  int? _totalPhysicalMemory;
+  int? _freePhysicalMemory;
+  int? _totalVirtualMemory;
+  int? _freeVirtualMemory;
+  int? _virtualMemorySize;
+
+  static const _chars =
+      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+
+  @override
+  void initState() {
+    super.initState();
+    _objectCountController = TextEditingController(text: '100000');
+    _minSizeController = TextEditingController(text: '1000');
+    _maxSizeController = TextEditingController(text: '100000');
+    _updateMemoryInfo();
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      _updateMemoryInfo();
+    });
+  }
+
+  @override
+  void dispose() {
+    _objectCountController.dispose();
+    _minSizeController.dispose();
+    _maxSizeController.dispose();
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _updateMemoryInfo() {
+    setState(() {
+      _totalPhysicalMemory = SysInfo.getTotalPhysicalMemory();
+      _freePhysicalMemory = SysInfo.getFreePhysicalMemory();
+      _totalVirtualMemory = SysInfo.getTotalVirtualMemory();
+      _freeVirtualMemory = SysInfo.getFreeVirtualMemory();
+      _virtualMemorySize = SysInfo.getVirtualMemorySize();
+    });
+  }
+
+  void _allocateObjects() {
+    final objectCount = int.tryParse(_objectCountController.text) ?? 100000;
+    final minSize = int.tryParse(_minSizeController.text) ?? 1000;
+    final maxSize = int.tryParse(_maxSizeController.text) ?? 100000;
+
+    if (minSize > maxSize) {
+      ShadToaster.of(context).show(
+          const ShadToast(
+          title: Text('Error'),
+          description: Text('Min size cannot be greater than max size.'),
+        ),
+      );
+      return;
+    }
+
+    // We want to print 1% of the strings. Printing every 100th string
+    // accomplishes this.
+    const printInterval = 100;
+    for (var i = 0; i < objectCount; i++) {
+      final length =
+          _random.nextInt(maxSize - minSize + 1) + minSize;
+      final randomString = String.fromCharCodes(
+        Iterable.generate(
+          length,
+          (_) => _chars.codeUnitAt(_random.nextInt(_chars.length)),
+        ),
+      );
+      if (i % printInterval == 0) {
+        if (kDebugMode) {
+       //   print('Generated string: $randomString');
+        }
+      }
+      _allocatedObjects.add(randomString);
+    }
+    setState(() {});
+    ShadToaster.of(context).show(
+      ShadToast(
+        description: Text('Allocated $objectCount new string objects.'),
+      ),
+    );
+  }
+
+  void _clearObjects() {
+    _allocatedObjects.clear();
+    setState(() {});
+    ShadToaster.of(context).show(
+      const ShadToast(
+        description: Text('Cleared allocated objects. Ready for GC.'),
+      ),
+    );
+  }
+
+  String _formatMemory(int? bytes) {
+    if (bytes == null) return 'N/A';
+    return '${(bytes / 1024 / 1024).round()} MB';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return const TodoScreen(screenName: 'Memory');
+    return Center(
+      child: SingleChildScrollView(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 350),
+          child: Column(
+            children: [
+              ShadCard(
+                title: const Text('Memory Tools'),
+                description: Text(
+                  'Use these tools to test memory management in your application.\n'
+                  'Currently holding onto ${_allocatedObjects.length} string objects.',
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ShadButton(
+                      onPressed: _allocateObjects,
+                      child: const Text('Allocate Objects'),
+                    ),
+                    const SizedBox(height: 16),
+                    ShadInputFormField(
+                      controller: _objectCountController,
+                      label: const Text('Number of Objects'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 8),
+                    ShadInputFormField(
+                      controller: _minSizeController,
+                      label: const Text('Min String Size'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 8),
+                    ShadInputFormField(
+                      controller: _maxSizeController,
+                      label: const Text('Max String Size'),
+                      keyboardType: TextInputType.number,
+                    ),
+                    const SizedBox(height: 16),
+                    ShadButton.destructive(
+                      onPressed: _clearObjects,
+                      child: const Text('Clear Allocated Objects'),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              ShadCard(
+                title: const Text('System Memory'),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                        'Total Physical Memory: ${_formatMemory(_totalPhysicalMemory)}'),
+                    Text(
+                        'Free Physical Memory: ${_formatMemory(_freePhysicalMemory)}'),
+                    Text(
+                        'Total Virtual Memory: ${_formatMemory(_totalVirtualMemory)}'),
+                    Text(
+                        'Free Virtual Memory: ${_formatMemory(_freeVirtualMemory)}'),
+                    Text(
+                        'Virtual Memory Size: ${_formatMemory(_virtualMemorySize)}'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
