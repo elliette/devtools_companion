@@ -1,10 +1,43 @@
 import 'dart:async';
+import 'dart:isolate';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 import 'package:system_info2/system_info2.dart';
+
+const _chars =
+    'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+
+void _generateObjectsIsolate(Map<String, dynamic> args) {
+  final sendPort = args['sendPort'] as SendPort;
+  final objectCount = args['objectCount'] as int;
+  final minSize = args['minSize'] as int;
+  final maxSize = args['maxSize'] as int;
+  final random = Random();
+  final allocatedObjects = <String>[];
+
+  // We want to print 1% of the strings. Printing every 100th string
+  // accomplishes this.
+  const printInterval = 100;
+  for (var i = 0; i < objectCount; i++) {
+    final length = random.nextInt(maxSize - minSize + 1) + minSize;
+    final randomString = String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => _chars.codeUnitAt(random.nextInt(_chars.length)),
+      ),
+    );
+    if (i % printInterval == 0) {
+      if (kDebugMode) {
+        //   print('Generated string: $randomString');
+      }
+    }
+    allocatedObjects.add(randomString);
+  }
+  sendPort.send(allocatedObjects);
+}
 
 class MemoryScreen extends StatefulWidget {
   const MemoryScreen({super.key});
@@ -19,7 +52,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
   late final TextEditingController _maxSizeController;
 
   final _allocatedObjects = <String>[];
-  final _random = Random();
 
   Timer? _timer;
   int? _totalPhysicalMemory;
@@ -28,8 +60,9 @@ class _MemoryScreenState extends State<MemoryScreen> {
   int? _freeVirtualMemory;
   int? _virtualMemorySize;
 
-  static const _chars =
-      'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+  bool _isGenerating = false;
+  Isolate? _isolate;
+  ReceivePort? _receivePort;
 
   @override
   void initState() {
@@ -49,6 +82,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
     _minSizeController.dispose();
     _maxSizeController.dispose();
     _timer?.cancel();
+    _isolate?.kill(priority: Isolate.immediate);
+    _receivePort?.close();
     super.dispose();
   }
 
@@ -62,46 +97,60 @@ class _MemoryScreenState extends State<MemoryScreen> {
     });
   }
 
-  void _allocateObjects() {
+  Future<void> _allocateObjects() async {
+    setState(() {
+      _isGenerating = true;
+    });
+
     final objectCount = int.tryParse(_objectCountController.text) ?? 100000;
     final minSize = int.tryParse(_minSizeController.text) ?? 1000;
     final maxSize = int.tryParse(_maxSizeController.text) ?? 100000;
 
     if (minSize > maxSize) {
       ShadToaster.of(context).show(
-          const ShadToast(
+        const ShadToast(
           title: Text('Error'),
           description: Text('Min size cannot be greater than max size.'),
         ),
       );
+      setState(() {
+        _isGenerating = false;
+      });
       return;
     }
 
-    // We want to print 1% of the strings. Printing every 100th string
-    // accomplishes this.
-    const printInterval = 100;
-    for (var i = 0; i < objectCount; i++) {
-      final length =
-          _random.nextInt(maxSize - minSize + 1) + minSize;
-      final randomString = String.fromCharCodes(
-        Iterable.generate(
-          length,
-          (_) => _chars.codeUnitAt(_random.nextInt(_chars.length)),
-        ),
-      );
-      if (i % printInterval == 0) {
-        if (kDebugMode) {
-       //   print('Generated string: $randomString');
-        }
-      }
-      _allocatedObjects.add(randomString);
-    }
-    setState(() {});
-    ShadToaster.of(context).show(
-      ShadToast(
-        description: Text('Allocated $objectCount new string objects.'),
-      ),
+    _receivePort = ReceivePort();
+    _isolate = await Isolate.spawn(
+      _generateObjectsIsolate,
+      {
+        'sendPort': _receivePort!.sendPort,
+        'objectCount': objectCount,
+        'minSize': minSize,
+        'maxSize': maxSize,
+      },
     );
+
+    _receivePort!.listen((message) {
+      if (message is List<String>) {
+        _allocatedObjects.addAll(message);
+        ShadToaster.of(context).show(
+          ShadToast(
+            description: Text('Allocated $objectCount new string objects.'),
+          ),
+        );
+      }
+      _stopGeneration();
+    });
+  }
+
+  void _stopGeneration() {
+    _isolate?.kill(priority: Isolate.immediate);
+    _receivePort?.close();
+    setState(() {
+      _isolate = null;
+      _receivePort = null;
+      _isGenerating = false;
+    });
   }
 
   void _clearObjects() {
@@ -137,10 +186,19 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    ShadButton(
-                      onPressed: _allocateObjects,
-                      child: const Text('Allocate Objects'),
-                    ),
+                    if (_isGenerating) ...[
+                      const ShadProgress(),
+                      const SizedBox(height: 16),
+                      ShadButton.destructive(
+                        onPressed: _stopGeneration,
+                        child: const Text('Stop Generation'),
+                      ),
+                    ] else ...[
+                      ShadButton(
+                        onPressed: _allocateObjects,
+                        child: const Text('Allocate Objects'),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     ShadInputFormField(
                       controller: _objectCountController,
