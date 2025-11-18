@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class InspectorScreen extends StatelessWidget {
   const InspectorScreen({super.key});
@@ -9,15 +10,12 @@ class InspectorScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Meal Planner'),
       ),
-      body: Column(
+      body: const Column(
         children: [
           Expanded(
-            child: Container(
-              alignment: Alignment.center,
-              child: const CalendarWidget(),
-            ),
+            child: CalendarWidget(),
           ),
-          const Expanded(
+          Expanded(
             child: RecipeWidget(),
           ),
         ],
@@ -26,15 +24,29 @@ class InspectorScreen extends StatelessWidget {
   }
 }
 
-class CalendarWidget extends StatelessWidget {
+class CalendarWidget extends StatefulWidget {
   const CalendarWidget({super.key});
+
+  @override
+  State<CalendarWidget> createState() => _CalendarWidgetState();
+}
+
+class _CalendarWidgetState extends State<CalendarWidget> {
+  final _pageController = PageController(initialPage: DateTime.now().month - 1);
+  late String _monthName;
+
+  @override
+  void initState() {
+    super.initState();
+    _monthName = DateFormat('MMMM').format(DateTime(2025, DateTime.now().month));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text('June 2024'),
+        Text('$_monthName 2025'),
         const SizedBox(height: 16),
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -48,16 +60,42 @@ class CalendarWidget extends StatelessWidget {
             Text('Sun'),
           ],
         ),
-        GridView.count(
-          crossAxisCount: 7,
-          shrinkWrap: true,
-          children: List.generate(30, (index) {
-            return Center(
-              child: Text(
-                '${index + 1}',
-              ),
-            );
-          }),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            itemCount: 12,
+            onPageChanged: (index) {
+              setState(() {
+                _monthName = DateFormat('MMMM').format(DateTime(2025, index + 1));
+              });
+            },
+            itemBuilder: (context, index) {
+              final month = index + 1;
+              final daysInMonth = DateTime(2025, month + 1, 0).day;
+              final firstDayOfMonth = DateTime(2025, month, 1);
+              final weekdayOfFirstDay = firstDayOfMonth.weekday; // Monday is 1, Sunday is 7
+
+              final List<Widget> calendarItems = [];
+              // Add empty containers for the days of the week before the first day of the month.
+              for (int i = 1; i < weekdayOfFirstDay; i++) {
+                calendarItems.add(Container());
+              }
+
+              // Add the days of the month.
+              for (int i = 1; i <= daysInMonth; i++) {
+                calendarItems.add(
+                  Center(
+                    child: Text('$i'),
+                  ),
+                );
+              }
+
+              return GridView.count(
+                crossAxisCount: 7,
+                children: calendarItems,
+              );
+            },
+          ),
         ),
       ],
     );
