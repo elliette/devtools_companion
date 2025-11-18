@@ -15,9 +15,15 @@ class Meal {
 
 const meals = [
   Meal(
-    name: 'Oatmeal',
+    name: 'Overflowing Oatmeal',
     description: 'A healthy and hearty breakfast.',
-    ingredients: ['Rolled oats', 'Milk', 'Honey', 'Berries'],
+    ingredients: [
+      'Rolled oats',
+      'Milk',
+      'Honey',
+      'Berries',
+      'A very long line of text that will definitely overflow the screen and cause a render overflow error.'
+    ],
   ),
   Meal(
     name: 'Salad',
@@ -138,7 +144,7 @@ class DailyMealPlan extends StatelessWidget {
               onTap: () => onMealSelected(meals[0]),
               child: const Padding(
                 padding: EdgeInsets.all(8.0),
-                child: Text('Breakfast: Oatmeal'),
+                child: Text('Breakfast: Overflowing Oatmeal'),
               ),
             ),
             InkWell(
@@ -418,7 +424,13 @@ class RecipeWidget extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            for (final ingredient in meal.ingredients) Text('- $ingredient'),
+            for (final ingredient in meal.ingredients)
+              Row(
+                children: [
+                  const Text('- '),
+                  Text(ingredient),
+                ],
+              ),
           ],
         ),
       ),
