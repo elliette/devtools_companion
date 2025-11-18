@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../shared/ui/theme.dart';
+
 class ExpensiveTaskWidget extends StatefulWidget {
   const ExpensiveTaskWidget({
     super.key,
@@ -63,14 +65,14 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const .all(8.0),
+      margin: const .all(denseSpacing),
       child: Padding(
-        padding: const .all(16.0),
+        padding: const .all(largePadding),
         child: Column(
           crossAxisAlignment: .start,
           children: [
             Text(widget.title, style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 16),
+            const SizedBox(height: denseSpacing),
             Row(
               children: [
                 if (_isRunning)
@@ -85,7 +87,7 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
                     icon: const Icon(Icons.play_arrow),
                     label: Text(widget.buttonText),
                   ),
-                const SizedBox(width: 16),
+                const SizedBox(width: largeSpacing),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

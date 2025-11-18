@@ -1,5 +1,8 @@
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 
+import '../../shared/ui/theme.dart';
 import 'expensive_task_widget.dart';
 
 class CpuProfilerScreen extends StatelessWidget {
@@ -13,11 +16,15 @@ class CpuProfilerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const .all(largePadding),
       children: [
         ExpensiveTaskWidget(
           title: 'Compute Fibonacci (37)',
           task: () => _fib(37).toString(),
+        ),
+        ExpensiveTaskWidget(
+          title: 'Compute Fibonacci (37) in Isolate',
+          task: () => Isolate.run(() => _fib(37).toString()),
         ),
       ],
     );
