@@ -1,8 +1,64 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class InspectorScreen extends StatelessWidget {
+class Meal {
+  const Meal({
+    required this.name,
+    required this.description,
+    required this.ingredients,
+  });
+
+  final String name;
+  final String description;
+  final List<String> ingredients;
+}
+
+const meals = [
+  Meal(
+    name: 'Oatmeal',
+    description: 'A healthy and hearty breakfast.',
+    ingredients: ['Rolled oats', 'Milk', 'Honey', 'Berries'],
+  ),
+  Meal(
+    name: 'Salad',
+    description: 'A light and refreshing lunch.',
+    ingredients: ['Lettuce', 'Tomato', 'Cucumber', 'Dressing'],
+  ),
+  Meal(
+    name: 'Spaghetti Carbonara',
+    description: 'A classic Italian pasta dish.',
+    ingredients: ['Spaghetti', 'Eggs', 'Pancetta', 'Parmesan cheese', 'Black pepper'],
+  ),
+];
+
+class InspectorScreen extends StatefulWidget {
   const InspectorScreen({super.key});
+
+  @override
+  State<InspectorScreen> createState() => _InspectorScreenState();
+}
+
+class _InspectorScreenState extends State<InspectorScreen> {
+  DateTime? _selectedDate;
+  Meal _selectedMeal = meals[2]; // Default to Spaghetti
+
+  void _onDateSelected(DateTime date) {
+    setState(() {
+      _selectedDate = date;
+    });
+  }
+
+  void _showCalendar() {
+    setState(() {
+      _selectedDate = null;
+    });
+  }
+
+  void _onMealSelected(Meal meal) {
+    setState(() {
+      _selectedMeal = meal;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -10,13 +66,19 @@ class InspectorScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Meal Planner'),
       ),
-      body: const Column(
+      body: Column(
         children: [
           Expanded(
-            child: CalendarWidget(),
+            child: _selectedDate == null
+                ? CalendarWidget(onDateSelected: _onDateSelected)
+                : DailyMealPlan(
+                    date: _selectedDate!,
+                    onTap: _showCalendar,
+                    onMealSelected: _onMealSelected,
+                  ),
           ),
           Expanded(
-            child: RecipeWidget(),
+            child: RecipeWidget(meal: _selectedMeal),
           ),
         ],
       ),
@@ -24,8 +86,73 @@ class InspectorScreen extends StatelessWidget {
   }
 }
 
+class DailyMealPlan extends StatelessWidget {
+  const DailyMealPlan({
+    super.key,
+    required this.date,
+    required this.onTap,
+    required this.onMealSelected,
+  });
+
+  final DateTime date;
+  final VoidCallback onTap;
+  final ValueChanged<Meal> onMealSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final dayName = DateFormat('EEEE').format(date);
+    return Stack(
+      children: [
+        Positioned(
+          top: 0,
+          left: 0,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: onTap,
+          ),
+        ),
+        Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Center(
+              child: Text(
+                '${date.month}/${date.day}/${date.year} - $dayName',
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
+            const SizedBox(height: 16),
+            InkWell(
+              onTap: () => onMealSelected(meals[0]),
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Breakfast: Oatmeal'),
+              ),
+            ),
+            InkWell(
+              onTap: () => onMealSelected(meals[1]),
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Lunch: Salad'),
+              ),
+            ),
+            InkWell(
+              onTap: () => onMealSelected(meals[2]),
+              child: const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Dinner: Spaghetti Carbonara'),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class CalendarWidget extends StatefulWidget {
-  const CalendarWidget({super.key});
+  const CalendarWidget({super.key, required this.onDateSelected});
+
+  final ValueChanged<DateTime> onDateSelected;
 
   @override
   State<CalendarWidget> createState() => _CalendarWidgetState();
@@ -34,11 +161,13 @@ class CalendarWidget extends StatefulWidget {
 class _CalendarWidgetState extends State<CalendarWidget> {
   final _pageController = PageController(initialPage: DateTime.now().month - 1);
   late String _monthName;
+  late int _currentMonth;
 
   @override
   void initState() {
     super.initState();
-    _monthName = DateFormat('MMMM').format(DateTime(2025, DateTime.now().month));
+    _currentMonth = DateTime.now().month;
+    _monthName = DateFormat('MMMM').format(DateTime(2025, _currentMonth));
   }
 
   @override
@@ -66,7 +195,8 @@ class _CalendarWidgetState extends State<CalendarWidget> {
             itemCount: 12,
             onPageChanged: (index) {
               setState(() {
-                _monthName = DateFormat('MMMM').format(DateTime(2025, index + 1));
+                _currentMonth = index + 1;
+                _monthName = DateFormat('MMMM').format(DateTime(2025, _currentMonth));
               });
             },
             itemBuilder: (context, index) {
@@ -83,9 +213,13 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
               // Add the days of the month.
               for (int i = 1; i <= daysInMonth; i++) {
+                final date = DateTime(2025, month, i);
                 calendarItems.add(
-                  Center(
-                    child: Text('$i'),
+                  InkWell(
+                    onTap: () => widget.onDateSelected(date),
+                    child: Center(
+                      child: Text('$i'),
+                    ),
                   ),
                 );
               }
@@ -103,7 +237,9 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 }
 
 class RecipeWidget extends StatelessWidget {
-  const RecipeWidget({super.key});
+  const RecipeWidget({super.key, required this.meal});
+
+  final Meal meal;
 
   @override
   Widget build(BuildContext context) {
@@ -115,24 +251,18 @@ class RecipeWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Spaghetti Carbonara',
+              meal.name,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),
-            const Text(
-              'A classic Italian pasta dish.',
-            ),
+            Text(meal.description),
             const SizedBox(height: 16),
             const Text(
               'Ingredients:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const Text('- Spaghetti'),
-            const Text('- Eggs'),
-            const Text('- Pancetta'),
-            const Text('- Parmesan cheese'),
-            const Text('- Black pepper'),
+            for (final ingredient in meal.ingredients) Text('- $ingredient'),
           ],
         ),
       ),
