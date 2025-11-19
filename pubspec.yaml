@@ -1,5 +1,5 @@
 name: devtools_companion
-description: "A new Flutter project."
+description: "Companion app for developers working on Flutter/Dart Devtools"
 publish_to: 'none'
 
 version: 1.0.0+1
