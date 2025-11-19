@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Checkbox, TextFormField;
+import 'package:shadcn_ui/shadcn_ui.dart';
 
 import 'http_client.dart';
 import 'http_server.dart';
@@ -163,45 +164,46 @@ class _RequestTableState extends State<RequestTable> {
           TableRow(
             children: [
               Text(settings.type.text),
-              Checkbox(
+              ShadCheckbox(
                 value: settings.requestHasBody ?? settings.requestCanHaveBody,
                 onChanged: settings.requestHasBody == null
                     ? null
                     : (value) {
                         setState(() {
-                          settings.requestHasBody = value ?? true;
+                          settings.requestHasBody = value;
                         });
                       },
               ),
-              TextFormField(
+              ShadInput(
                 initialValue: '200',
+                keyboardType: TextInputType.number,
                 onChanged: (value) {
                   setState(() {
                     settings.responseCode = int.tryParse(value) ?? 200;
                   });
                 },
               ),
-              Checkbox(
+              ShadCheckbox(
                 value: settings.responseHasBody,
                 onChanged: (value) {
                   setState(() {
-                    settings.responseHasBody = value ?? true;
+                    settings.responseHasBody = value;
                   });
                 },
               ),
-              Checkbox(
+              ShadCheckbox(
                 value: settings.shouldComplete,
                 onChanged: (value) {
                   setState(() {
-                    settings.shouldComplete = value ?? false;
+                    settings.shouldComplete = value;
                   });
                 },
               ),
-              Checkbox(
+              ShadCheckbox(
                 value: settings.shouldRepeat,
                 onChanged: (value) {
                   setState(() {
-                    settings.shouldRepeat = value ?? false;
+                    settings.shouldRepeat = value;
                   });
                 },
               ),
