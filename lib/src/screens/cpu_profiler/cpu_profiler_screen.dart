@@ -19,7 +19,7 @@ class _CpuProfilerScreenState extends State<CpuProfilerScreen> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(largePadding),
+      padding: const .all(largePadding),
       children: [
         const ExpensiveTaskWidget(
           title: 'Compute Fibonacci (37)',
