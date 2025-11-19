@@ -1,4 +1,4 @@
-import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 
 import '../screens/cpu_profiler/cpu_profiler_screen.dart';
 import '../screens/debugger/debugger_screen.dart';
@@ -10,68 +10,104 @@ import '../screens/network/network_screen.dart';
 import '../screens/performance/performance_screen.dart';
 import './app_shell.dart';
 
-final homeRoute = GoRoute(
-  path: '/',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Home', screenBody: HomeScreen()),
-);
-
-final inspectorRoute = GoRoute(
-  path: '/inspector',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Inspector', screenBody: InspectorScreen()),
-);
-
-final performanceRoute = GoRoute(
-  path: '/performance',
-  builder: (context, state) => const AppShell(
-    screenName: 'Performance',
-    screenBody: PerformanceScreen(),
+enum AppRoute {
+  home(name: 'Home', path: '/', iconAsset: 'assets/icons/devtools.png'),
+  inspector(
+    name: 'Inspector',
+    path: '/inspector',
+    iconAsset: 'assets/icons/inspector.png',
   ),
-);
-
-final networkRoute = GoRoute(
-  path: '/network',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Network', screenBody: NetworkScreen()),
-);
-
-final memoryRoute = GoRoute(
-  path: '/memory',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Memory', screenBody: MemoryScreen()),
-);
-
-final cpuProfilerRoute = GoRoute(
-  path: '/cpu-profiler',
-  builder: (context, state) => const AppShell(
-    screenName: 'CPU Profiler',
-    screenBody: CpuProfilerScreen(),
+  performance(
+    name: 'Performance',
+    path: '/performance',
+    iconAsset: 'assets/icons/performance.png',
   ),
-);
+  network(
+    name: 'Network',
+    path: '/network',
+    iconAsset: 'assets/icons/network.png',
+  ),
+  memory(name: 'Memory', path: '/memory', iconAsset: 'assets/icons/memory.png'),
+  cpuProfiler(
+    name: 'CPU Profiler',
+    path: '/cpu-profiler',
+    iconAsset: 'assets/icons/cpu_profiler.png',
+  ),
+  debugger(
+    name: 'Debugger',
+    path: '/debugger',
+    iconAsset: 'assets/icons/debugger.png',
+  ),
+  logging(
+    name: 'Logging',
+    path: '/logging',
+    iconAsset: 'assets/icons/logging.png',
+  );
 
-final debuggerRoute = GoRoute(
-  path: '/debugger',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Debugger', screenBody: DebuggerScreen()),
-);
+  const AppRoute({
+    required this.name,
+    required this.path,
+    required this.iconAsset,
+  });
+  final String path;
+  final String name;
+  final String iconAsset;
 
-final loggingRoute = GoRoute(
-  path: '/logging',
-  builder: (context, state) =>
-      const AppShell(screenName: 'Logging', screenBody: LoggingScreen()),
-);
+  static AppRoute fromPath(String? path) {
+    if (path == null) return AppRoute.home;
+    return AppRoute.values.firstWhere(
+      (e) => e.path == path,
+      orElse: () => AppRoute.home,
+    );
+  }
+}
 
-final router = GoRouter(
-  initialLocation: '/',
-  routes: [
-    homeRoute,
-    inspectorRoute,
-    performanceRoute,
-    networkRoute,
-    memoryRoute,
-    cpuProfilerRoute,
-    debuggerRoute,
-    loggingRoute,
-  ],
-);
+String get home => AppRoute.home.path;
+
+Route<dynamic> onGenerateRoute(RouteSettings settings) {
+  final page = AppRoute.fromPath(settings.name);
+  return MaterialPageRoute(
+    settings: settings,
+    builder: (context) {
+      switch (page) {
+        case AppRoute.inspector:
+          return const AppShell(
+            screenName: 'Inspector',
+            screenBody: InspectorScreen(),
+          );
+        case AppRoute.performance:
+          return const AppShell(
+            screenName: 'Performance',
+            screenBody: PerformanceScreen(),
+          );
+        case AppRoute.network:
+          return const AppShell(
+            screenName: 'Network',
+            screenBody: NetworkScreen(),
+          );
+        case AppRoute.memory:
+          return const AppShell(
+            screenName: 'Memory',
+            screenBody: MemoryScreen(),
+          );
+        case AppRoute.cpuProfiler:
+          return const AppShell(
+            screenName: 'CPU Profiler',
+            screenBody: CpuProfilerScreen(),
+          );
+        case AppRoute.debugger:
+          return const AppShell(
+            screenName: 'Debugger',
+            screenBody: DebuggerScreen(),
+          );
+        case AppRoute.logging:
+          return const AppShell(
+            screenName: 'Logging',
+            screenBody: LoggingScreen(),
+          );
+        case AppRoute.home:
+          return const AppShell(screenName: 'Home', screenBody: HomeScreen());
+      }
+    },
+  );
+}
