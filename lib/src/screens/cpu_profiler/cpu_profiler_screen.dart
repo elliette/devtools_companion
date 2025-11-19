@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:flutter/material.dart';
@@ -26,7 +27,28 @@ class CpuProfilerScreen extends StatelessWidget {
           title: 'Compute Fibonacci (37) in Isolate',
           task: () => Isolate.run(() => _fib(37).toString()),
         ),
+        ExpensiveTaskWidget(
+          title: 'Compute FibonacciAsync (20) x5',
+          task: () async {
+            final results = await Future.wait([
+              for (var i = 0; i < 5; i++) fibAsync20(),
+            ]);
+            return '${results.reduce((a, b) => a + b)}';
+          },
+        ),
       ],
     );
   }
+}
+
+Future<int> fibAsync20() => _fibAsync(20);
+
+Future<int> _fibAsync(int n) async {
+  if (n <= 1) return n;
+  final completer = Completer<int>();
+  Timer.run(() async {
+    final (a, b) = await (_fibAsync(n - 1), _fibAsync(n - 2)).wait;
+    completer.complete(a + b);
+  });
+  return completer.future;
 }
