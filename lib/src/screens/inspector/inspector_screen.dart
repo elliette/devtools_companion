@@ -204,23 +204,23 @@ class _CalendarWidgetState extends State<CalendarWidget> {
     return ShadTabs<CalendarView>(
       value: _view,
       contentConstraints: const BoxConstraints(
-        maxWidth: 400,
-        maxHeight: 420,
-      ),
-      tabBarConstraints: const BoxConstraints(
-        maxWidth: 400,
-        maxHeight: 400,
+        // TODO: Add heights to child widgets?
+        // It seems that a height needs to be defined somewhere for both the
+        // Month and Week views, but I haven't found where it makes sense to
+        // define a height. E.g. maybe somewhere down in the tree there should
+        // be an option to limit height based on text height?
+        maxHeight: 330,
       ),
       tabs: [
         ShadTab(
           value: CalendarView.month,
           content: MonthViewWidget(onDateSelected: widget.onDateSelected),
-          child: Text('Month'),
+          child: const Text('Month'),
         ),
         ShadTab(
           value: CalendarView.week,
           content: WeekViewWidget(onDateSelected: widget.onDateSelected),
-          child: Text('Week'),
+          child: const Text('Week'),
         ),
       ],
     );
@@ -305,6 +305,7 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
               return GridView.count(
                 crossAxisCount: 7,
                 children: calendarItems,
+                shrinkWrap: true,
               );
             },
           ),
