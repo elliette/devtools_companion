@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
+import '../scaffold/router.dart';
 import 'router.dart';
 
 class AppDrawer extends StatelessWidget {
@@ -11,7 +11,7 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currentPath = GoRouterState.of(context).matchedLocation;
+    final currentPath = ModalRoute.of(context)?.settings.name ?? AppRouter.home;
     return Drawer(
       width: _drawerWidth,
       child: ListView(
@@ -20,49 +20,49 @@ class AppDrawer extends StatelessWidget {
           _DrawerItem(
             iconAsset: 'assets/icons/devtools.png',
             title: 'Home',
-            path: homeRoute.path,
+            path: AppRouter.home,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/inspector.png',
             title: 'Inspector',
-            path: inspectorRoute.path,
+            path: AppRouter.inspector,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/performance.png',
             title: 'Performance',
-            path: performanceRoute.path,
+            path: AppRouter.performance,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/network.png',
             title: 'Network',
-            path: networkRoute.path,
+            path: AppRouter.network,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/memory.png',
             title: 'Memory',
-            path: memoryRoute.path,
+            path: AppRouter.memory,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/cpu_profiler.png',
             title: 'CPU Profiler',
-            path: cpuProfilerRoute.path,
+            path: AppRouter.cpuProfiler,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/debugger.png',
             title: 'Debugger',
-            path: debuggerRoute.path,
+            path: AppRouter.debugger,
             currentPath: currentPath,
           ),
           _DrawerItem(
             iconAsset: 'assets/icons/logging.png',
             title: 'Logging',
-            path: loggingRoute.path,
+            path: AppRouter.logging,
             currentPath: currentPath,
           ),
         ],
@@ -103,8 +103,12 @@ class _DrawerItem extends StatelessWidget {
       ),
       selected: isSelected,
       onTap: () {
+        // Close the drawer.
         Navigator.pop(context);
-        context.go(path);
+        // Navigate to the new screen, but only if it's not the current one.
+        if (!isSelected) {
+          Navigator.pushReplacementNamed(context, path);
+        }
       },
     );
   }
