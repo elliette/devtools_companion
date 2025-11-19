@@ -39,6 +39,7 @@ dependencies:
   shadcn_ui: ^0.39.6
   flutter_markdown: ^0.7.7+1
   dio: ^5.9.0
+  system_info2: ^4.1.0
 
 dev_dependencies:
   flutter_test:
