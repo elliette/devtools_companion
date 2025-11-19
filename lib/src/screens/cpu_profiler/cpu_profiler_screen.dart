@@ -45,10 +45,7 @@ Future<int> fibAsync20() => _fibAsync(20);
 
 Future<int> _fibAsync(int n) async {
   if (n <= 1) return n;
-  final completer = Completer<int>();
-  Timer.run(() async {
-    final (a, b) = await (_fibAsync(n - 1), _fibAsync(n - 2)).wait;
-    completer.complete(a + b);
-  });
-  return completer.future;
+  await Future.delayed(const Duration(milliseconds: 16));
+  final (a, b) = await (_fibAsync(n - 1), _fibAsync(n - 2)).wait;
+  return a + b;
 }
