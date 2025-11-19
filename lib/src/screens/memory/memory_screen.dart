@@ -10,13 +10,14 @@ import 'package:system_info2/system_info2.dart';
 const _chars =
     'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 
-void _generateObjectsIsolate(Map<String, dynamic> args) {
+void _generateObjectsIsolate(Map<String, dynamic> args) async {
   final sendPort = args['sendPort'] as SendPort;
   final objectCount = args['objectCount'] as int;
   final minSize = args['minSize'] as int;
   final maxSize = args['maxSize'] as int;
   final random = Random();
   final allocatedObjects = <String>[];
+  final stopwatch = Stopwatch()..start();
 
   // We want to print 1% of the strings. Printing every 100th string
   // accomplishes this.
@@ -35,8 +36,13 @@ void _generateObjectsIsolate(Map<String, dynamic> args) {
       }
     }
     allocatedObjects.add(randomString);
+    if (stopwatch.elapsedMilliseconds > 50) {
+      sendPort.send({'type': 'progress', 'count': i + 1});
+      await Future.delayed(Duration.zero);
+      stopwatch.reset();
+    }
   }
-  sendPort.send(allocatedObjects);
+  sendPort.send({'type': 'complete', 'data': allocatedObjects});
 }
 
 class MemoryScreen extends StatefulWidget {
@@ -61,6 +67,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   int? _virtualMemorySize;
 
   bool _isGenerating = false;
+  int _generationProgress = 0;
   Isolate? _isolate;
   ReceivePort? _receivePort;
 
@@ -100,6 +107,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   Future<void> _allocateObjects() async {
     setState(() {
       _isGenerating = true;
+      _generationProgress = 0;
     });
 
     final objectCount = int.tryParse(_objectCountController.text) ?? 100000;
@@ -131,15 +139,26 @@ class _MemoryScreenState extends State<MemoryScreen> {
     );
 
     _receivePort!.listen((message) {
-      if (message is List<String>) {
-        _allocatedObjects.addAll(message);
-        ShadToaster.of(context).show(
-          ShadToast(
-            description: Text('Allocated $objectCount new string objects.'),
-          ),
-        );
+      if (message is Map) {
+        switch (message['type']) {
+          case 'progress':
+            setState(() {
+              _generationProgress = message['count'] as int;
+            });
+            break;
+          case 'complete':
+            final newObjects = message['data'] as List<String>;
+            _allocatedObjects.addAll(newObjects);
+            ShadToaster.of(context).show(
+              ShadToast(
+                description:
+                    Text('Allocated ${newObjects.length} new string objects.'),
+              ),
+            );
+            _stopGeneration();
+            break;
+        }
       }
-      _stopGeneration();
     });
   }
 
@@ -150,6 +169,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
       _isolate = null;
       _receivePort = null;
       _isGenerating = false;
+      _generationProgress = 0;
     });
   }
 
@@ -179,8 +199,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
               ShadCard(
                 title: const Text('Memory Tools'),
                 description: Text(
-                  'Use these tools to test memory management in your application.\n'
-                  'Currently holding onto ${_allocatedObjects.length} string objects.',
+                  _isGenerating
+                      ? 'Generating objects... $_generationProgress so far.'
+                      : 'Use these tools to test memory management in your application.\n'
+                          'Currently holding onto ${_allocatedObjects.length} string objects.',
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
