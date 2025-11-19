@@ -24,7 +24,7 @@ const meals = [
       'Milk',
       'Honey',
       'Berries',
-      'A very long line of text that will definitely overflow the screen and cause a render overflow error.'
+      'A very long line of text that will definitely overflow the screen and cause a render overflow error.',
     ],
   ),
   Meal(
@@ -35,7 +35,13 @@ const meals = [
   Meal(
     name: 'Spaghetti Carbonara',
     description: 'A classic Italian pasta dish.',
-    ingredients: ['Spaghetti', 'Eggs', 'Pancetta', 'Parmesan cheese', 'Black pepper'],
+    ingredients: [
+      'Spaghetti',
+      'Eggs',
+      'Pancetta',
+      'Parmesan cheese',
+      'Black pepper',
+    ],
   ),
 ];
 
@@ -80,9 +86,7 @@ class _InspectorScreenState extends State<InspectorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Meal Planner'),
-      ),
+      appBar: AppBar(title: const Text('Meal Planner')),
       body: Column(
         children: [
           Expanded(
@@ -197,32 +201,26 @@ class _CalendarWidgetState extends State<CalendarWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        ToggleButtons(
-          isSelected: [_view == CalendarView.month, _view == CalendarView.week],
-          onPressed: (index) {
-            final newView = index == 0 ? CalendarView.month : CalendarView.week;
-            setState(() {
-              _view = newView;
-            });
-            widget.onViewChanged(newView);
-          },
-          children: const [
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: largeSpacing),
-              child: Text('Month'),
-            ),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: largeSpacing),
-              child: Text('Week'),
-            ),
-          ],
+    return ShadTabs<CalendarView>(
+      value: _view,
+      contentConstraints: const BoxConstraints(
+        maxWidth: 400,
+        maxHeight: 420,
+      ),
+      tabBarConstraints: const BoxConstraints(
+        maxWidth: 400,
+        maxHeight: 400,
+      ),
+      tabs: [
+        ShadTab(
+          value: CalendarView.month,
+          content: MonthViewWidget(onDateSelected: widget.onDateSelected),
+          child: Text('Month'),
         ),
-        Expanded(
-          child: _view == CalendarView.month
-              ? MonthViewWidget(onDateSelected: widget.onDateSelected)
-              : WeekViewWidget(onDateSelected: widget.onDateSelected),
+        ShadTab(
+          value: CalendarView.week,
+          content: WeekViewWidget(onDateSelected: widget.onDateSelected),
+          child: Text('Week'),
         ),
       ],
     );
@@ -334,8 +332,9 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
     super.initState();
     final now = DateTime.now();
     final firstDayOf2025 = DateTime(2025);
-    final firstMondayOfYear =
-        firstDayOf2025.subtract(Duration(days: firstDayOf2025.weekday - 1));
+    final firstMondayOfYear = firstDayOf2025.subtract(
+      Duration(days: firstDayOf2025.weekday - 1),
+    );
 
     int initialPage = 0;
     if (now.year == 2025) {
@@ -352,7 +351,8 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
   Widget build(BuildContext context) {
     final weekEnd = _currentWeekStart.add(const Duration(days: 6));
     final formatter = DateFormat('MMM d');
-    final headerText = '${formatter.format(_currentWeekStart)} - ${formatter.format(weekEnd)}';
+    final headerText =
+        '${formatter.format(_currentWeekStart)} - ${formatter.format(weekEnd)}';
 
     return Column(
       children: [
@@ -399,6 +399,8 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
     );
   }
 }
+
+// lib/src/screens/inspector/inspector_screen.dart
 
 class RecipeWidget extends StatelessWidget {
   const RecipeWidget({super.key, required this.meal});
