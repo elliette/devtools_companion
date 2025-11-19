@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../shared/ui/theme.dart';
 
 class Meal {
   const Meal({
@@ -123,8 +125,8 @@ class DailyMealPlan extends StatelessWidget {
     return Stack(
       children: [
         Positioned(
-          top: 0,
-          left: 0,
+          top: noPadding,
+          left: noPadding,
           child: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: onTap,
@@ -139,25 +141,25 @@ class DailyMealPlan extends StatelessWidget {
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: largeSpacing),
             InkWell(
               onTap: () => onMealSelected(meals[0]),
               child: const Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(denseSpacing),
                 child: Text('Breakfast: Overflowing Oatmeal'),
               ),
             ),
             InkWell(
               onTap: () => onMealSelected(meals[1]),
               child: const Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(denseSpacing),
                 child: Text('Lunch: Salad'),
               ),
             ),
             InkWell(
               onTap: () => onMealSelected(meals[2]),
               child: const Padding(
-                padding: EdgeInsets.all(8.0),
+                padding: EdgeInsets.all(denseSpacing),
                 child: Text('Dinner: Spaghetti Carbonara'),
               ),
             ),
@@ -208,11 +210,11 @@ class _CalendarWidgetState extends State<CalendarWidget> {
           },
           children: const [
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: largeSpacing),
               child: Text('Month'),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              padding: EdgeInsets.symmetric(horizontal: largeSpacing),
               child: Text('Week'),
             ),
           ],
@@ -254,7 +256,7 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Text('$_monthName 2025'),
-        const SizedBox(height: 16),
+        const SizedBox(height: largeSpacing),
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -355,7 +357,7 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
     return Column(
       children: [
         Text(headerText),
-        const SizedBox(height: 16),
+        const SizedBox(height: largeSpacing),
         Expanded(
           child: PageView.builder(
             controller: _pageController,
@@ -405,10 +407,9 @@ class RecipeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.all(16.0),
+    return ShadCard(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(largeSpacing),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -416,14 +417,14 @@ class RecipeWidget extends StatelessWidget {
               meal.name,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: denseSpacing),
             Text(meal.description),
-            const SizedBox(height: 16),
+            const SizedBox(height: largeSpacing),
             const Text(
               'Ingredients:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: denseSpacing),
             for (final ingredient in meal.ingredients)
               Row(
                 children: [
