@@ -92,19 +92,17 @@ class _InspectorScreenState extends State<InspectorScreen> {
           Expanded(
             child: _selectedDate == null
                 ? CalendarWidget(
-                    onDateSelected: _onDateSelected,
-                    initialView: _calendarView,
-                    onViewChanged: _onCalendarViewChanged,
-                  )
+              onDateSelected: _onDateSelected,
+              initialView: _calendarView,
+              onViewChanged: _onCalendarViewChanged,
+            )
                 : DailyMealPlan(
-                    date: _selectedDate!,
-                    onTap: _showCalendar,
-                    onMealSelected: _onMealSelected,
-                  ),
+              date: _selectedDate!,
+              onTap: _showCalendar,
+              onMealSelected: _onMealSelected,
+            ),
           ),
-          Expanded(
-            child: RecipeWidget(meal: _selectedMeal),
-          ),
+          Expanded(child: RecipeWidget(meal: _selectedMeal)),
         ],
       ),
     );
@@ -142,7 +140,10 @@ class DailyMealPlan extends StatelessWidget {
             Center(
               child: Text(
                 '${date.month}/${date.day}/${date.year} - $dayName',
-                style: Theme.of(context).textTheme.headlineSmall,
+                style: Theme
+                    .of(context)
+                    .textTheme
+                    .headlineSmall,
               ),
             ),
             const SizedBox(height: largeSpacing),
@@ -203,14 +204,6 @@ class _CalendarWidgetState extends State<CalendarWidget> {
   Widget build(BuildContext context) {
     return ShadTabs<CalendarView>(
       value: _view,
-      contentConstraints: const BoxConstraints(
-        // TODO: Add heights to child widgets?
-        // It seems that a height needs to be defined somewhere for both the
-        // Month and Week views, but I haven't found where it makes sense to
-        // define a height. E.g. maybe somewhere down in the tree there should
-        // be an option to limit height based on text height?
-        maxHeight: 330,
-      ),
       tabs: [
         ShadTab(
           value: CalendarView.month,
@@ -237,24 +230,67 @@ class MonthViewWidget extends StatefulWidget {
 }
 
 class _MonthViewWidgetState extends State<MonthViewWidget> {
-  final _pageController = PageController(initialPage: DateTime.now().month - 1);
-  late String _monthName;
-  late int _currentMonth;
+  late DateTime _currentMonth;
 
   @override
   void initState() {
     super.initState();
-    _currentMonth = DateTime.now().month;
-    _monthName = DateFormat('MMMM').format(DateTime(2025, _currentMonth));
+    final now = DateTime.now();
+    _currentMonth = DateTime(now.year, now.month);
+  }
+
+  void _previousMonth() {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month - 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + 1);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final monthName = DateFormat('MMMM yyyy').format(_currentMonth);
+    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
+    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
+    final weekdayOfFirstDay = firstDayOfMonth.weekday; // Monday is 1, Sunday is 7
+
+    final List<Widget> calendarItems = [];
+    for (int i = 1; i < weekdayOfFirstDay; i++) {
+      calendarItems.add(Container());
+    }
+
+    for (int i = 1; i <= daysInMonth; i++) {
+      final date = DateTime(_currentMonth.year, _currentMonth.month, i);
+      calendarItems.add(
+        InkWell(
+          onTap: () => widget.onDateSelected(date),
+          child: Center(
+            child: Text('$i'),
+          ),
+        ),
+      );
+    }
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text('$_monthName 2025'),
-        const SizedBox(height: largeSpacing),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: _previousMonth,
+            ),
+            Text(monthName),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: _nextMonth,
+            ),
+          ],
+        ),
         const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -267,48 +303,13 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
             Text('Sun'),
           ],
         ),
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: 12,
-            onPageChanged: (index) {
-              setState(() {
-                _currentMonth = index + 1;
-                _monthName = DateFormat('MMMM').format(DateTime(2025, _currentMonth));
-              });
-            },
-            itemBuilder: (context, index) {
-              final month = index + 1;
-              final daysInMonth = DateTime(2025, month + 1, 0).day;
-              final firstDayOfMonth = DateTime(2025, month, 1);
-              final weekdayOfFirstDay = firstDayOfMonth.weekday; // Monday is 1, Sunday is 7
-
-              final List<Widget> calendarItems = [];
-              // Add empty containers for the days of the week before the first day of the month.
-              for (int i = 1; i < weekdayOfFirstDay; i++) {
-                calendarItems.add(Container());
-              }
-
-              // Add the days of the month.
-              for (int i = 1; i <= daysInMonth; i++) {
-                final date = DateTime(2025, month, i);
-                calendarItems.add(
-                  InkWell(
-                    onTap: () => widget.onDateSelected(date),
-                    child: Center(
-                      child: Text('$i'),
-                    ),
-                  ),
-                );
-              }
-
-              return GridView.count(
-                crossAxisCount: 7,
-                children: calendarItems,
-                shrinkWrap: true,
-              );
-            },
-          ),
+        const SizedBox(height: denseSpacing),
+        GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 7,
+          childAspectRatio: 1.5,
+          children: calendarItems,
         ),
       ],
     );
@@ -325,27 +326,26 @@ class WeekViewWidget extends StatefulWidget {
 }
 
 class _WeekViewWidgetState extends State<WeekViewWidget> {
-  late final PageController _pageController;
   late DateTime _currentWeekStart;
 
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
-    final firstDayOf2025 = DateTime(2025);
-    final firstMondayOfYear = firstDayOf2025.subtract(
-      Duration(days: firstDayOf2025.weekday - 1),
-    );
+    // Start the week on the Monday of the current week.
+    _currentWeekStart = now.subtract(Duration(days: now.weekday - 1));
+  }
 
-    int initialPage = 0;
-    if (now.year == 2025) {
-      initialPage = (now.difference(firstMondayOfYear).inDays / 7).floor();
-    }
-    if (initialPage < 0) initialPage = 0;
-    if (initialPage > 52) initialPage = 52;
+  void _previousWeek() {
+    setState(() {
+      _currentWeekStart = _currentWeekStart.subtract(const Duration(days: 7));
+    });
+  }
 
-    _pageController = PageController(initialPage: initialPage);
-    _currentWeekStart = firstMondayOfYear.add(Duration(days: initialPage * 7));
+  void _nextWeek() {
+    setState(() {
+      _currentWeekStart = _currentWeekStart.add(const Duration(days: 7));
+    });
   }
 
   @override
@@ -357,53 +357,44 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
 
     return Column(
       children: [
-        Text(headerText),
-        const SizedBox(height: largeSpacing),
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            itemCount: 53, // A year can span 53 weeks
-            onPageChanged: (index) {
-              final firstDayOfYear = DateTime(2025);
-              final firstMondayOfYear =
-                  firstDayOfYear.subtract(Duration(days: firstDayOfYear.weekday - 1));
-              setState(() {
-                _currentWeekStart = firstMondayOfYear.add(Duration(days: index * 7));
-              });
-            },
-            itemBuilder: (context, index) {
-              final firstDayOfYear = DateTime(2025);
-              final firstMondayOfYear =
-                  firstDayOfYear.subtract(Duration(days: firstDayOfYear.weekday - 1));
-              final firstDayOfWeek = firstMondayOfYear.add(Duration(days: index * 7));
-
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(7, (dayIndex) {
-                  final date = firstDayOfWeek.add(Duration(days: dayIndex));
-                  return InkWell(
-                    onTap: () => widget.onDateSelected(date),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(DateFormat('E').format(date)), // Day of week (e.g., Mon)
-                        Text('${date.day}'),
-                      ],
-                    ),
-                  );
-                }),
-              );
-            },
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              onPressed: _previousWeek,
+            ),
+            Text(headerText),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              onPressed: _nextWeek,
+            ),
+          ],
+        ),
+        const SizedBox(height: denseSpacing),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: List.generate(7, (dayIndex) {
+            final date = _currentWeekStart.add(Duration(days: dayIndex));
+            return InkWell(
+              onTap: () => widget.onDateSelected(date),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(DateFormat('E').format(date)), // Day of week (e.g., Mon)
+                  Text('${date.day}'),
+                ],
+              ),
+            );
+          }),
         ),
       ],
     );
   }
 }
 
-// lib/src/screens/inspector/inspector_screen.dart
 
-class RecipeWidget extends StatelessWidget {
+  class RecipeWidget extends StatelessWidget {
   const RecipeWidget({super.key, required this.meal});
 
   final Meal meal;
@@ -440,4 +431,4 @@ class RecipeWidget extends StatelessWidget {
       ),
     );
   }
-}
+  }
