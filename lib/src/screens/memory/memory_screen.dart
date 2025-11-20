@@ -2,10 +2,8 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
-import 'package:system_info2/system_info2.dart';
 
 const _chars =
     'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -21,7 +19,6 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
 
   // We want to print 1% of the strings. Printing every 100th string
   // accomplishes this.
-  const printInterval = 100;
   for (var i = 0; i < objectCount; i++) {
     final length = random.nextInt(maxSize - minSize + 1) + minSize;
     final randomString = String.fromCharCodes(
@@ -30,11 +27,7 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
         (_) => _chars.codeUnitAt(random.nextInt(_chars.length)),
       ),
     );
-    if (i % printInterval == 0) {
-      if (kDebugMode) {
-        //   print('Generated string: $randomString');
-      }
-    }
+  
     allocatedObjects.add(randomString);
     if (stopwatch.elapsedMilliseconds > 50) {
       sendPort.send({'type': 'progress', 'count': i + 1});
@@ -77,9 +70,8 @@ class _MemoryScreenState extends State<MemoryScreen> {
     _objectCountController = TextEditingController(text: '100000');
     _minSizeController = TextEditingController(text: '1000');
     _maxSizeController = TextEditingController(text: '100000');
-    _updateMemoryInfo();
+
     _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-      _updateMemoryInfo();
     });
   }
 
@@ -94,16 +86,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     super.dispose();
   }
 
-  void _updateMemoryInfo() {
-    setState(() {
-      _totalPhysicalMemory = SysInfo.getTotalPhysicalMemory();
-      _freePhysicalMemory = SysInfo.getFreePhysicalMemory();
-      _totalVirtualMemory = SysInfo.getTotalVirtualMemory();
-      _freeVirtualMemory = SysInfo.getFreeVirtualMemory();
-      _virtualMemorySize = SysInfo.getVirtualMemorySize();
-    });
-  }
-
+  
   Future<void> _allocateObjects() async {
     setState(() {
       _isGenerating = true;

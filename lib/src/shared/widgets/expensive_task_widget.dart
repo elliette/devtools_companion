@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../shared/ui/theme.dart';
+import '../ui/theme.dart';
 
 class ExpensiveTaskWidget extends StatefulWidget {
   const ExpensiveTaskWidget({
@@ -10,11 +10,13 @@ class ExpensiveTaskWidget extends StatefulWidget {
     required this.title,
     required this.task,
     this.buttonText = 'Run',
+    this.children,
   });
 
   final String title;
   final FutureOr<String> Function() task;
   final String buttonText;
+  final List<Widget>? children;
 
   @override
   State<ExpensiveTaskWidget> createState() => _ExpensiveTaskWidgetState();
@@ -108,6 +110,7 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
                 ),
               ],
             ),
+            if (widget.children != null) ...[Row(children: widget.children!)],
           ],
         ),
       ),
