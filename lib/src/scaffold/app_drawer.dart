@@ -17,6 +17,7 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.only(top: _topSpacing),
         children: AppRoute.values
+            .where((route) => route.showInAppDrawer)
             .map((route) => _DrawerItem(route: route, currentPath: currentPath))
             .toList(),
       ),
