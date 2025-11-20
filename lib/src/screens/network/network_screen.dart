@@ -148,108 +148,169 @@ class _RequestTableState extends State<RequestTable> {
         5: FlexColumnWidth(), // Go
       },
       children: [
-        const TableRow(
+        TableRow(
           children: [
-            Text('Type'),
-            Text('Request body?'),
-            Text('Response code'),
-            Text('Response body?'),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Type',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Request body?',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Response code',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Response body?',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
             // TODO: streaming response?
-            Text('Completes?'),
-            Text('Repeats?'),
-            Text(''),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Completes?',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(
+                'Repeats?',
+                style: Theme.of(context).textTheme.labelSmall,
+              ),
+            ),
+            const TableCell(
+              verticalAlignment: TableCellVerticalAlignment.middle,
+              child: Text(''),
+            ),
           ],
         ),
         for (final settings in settingsList)
           TableRow(
             children: [
-              Text(settings.type.text),
-              ShadCheckbox(
-                value: settings.requestHasBody ?? settings.requestCanHaveBody,
-                onChanged: settings.requestHasBody == null
-                    ? null
-                    : (value) {
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: Text(settings.type.text),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: ShadCheckbox(
+                  value: settings.requestHasBody ?? settings.requestCanHaveBody,
+                  onChanged: settings.requestHasBody == null
+                      ? null
+                      : (value) {
+                          setState(() {
+                            settings.requestHasBody = value;
+                          });
+                        },
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: ShadInput(
+                  initialValue: '200',
+                  keyboardType: TextInputType.number,
+                  onChanged: (value) {
+                    setState(() {
+                      settings.responseCode = int.tryParse(value) ?? 200;
+                    });
+                  },
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: ShadCheckbox(
+                  value: settings.responseHasBody,
+                  onChanged: (value) {
+                    setState(() {
+                      settings.responseHasBody = value;
+                    });
+                  },
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: ShadCheckbox(
+                  value: settings.shouldComplete,
+                  onChanged: (value) {
+                    setState(() {
+                      settings.shouldComplete = value;
+                    });
+                  },
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: ShadCheckbox(
+                  value: settings.shouldRepeat,
+                  onChanged: (value) {
+                    setState(() {
+                      settings.shouldRepeat = value;
+                    });
+                  },
+                ),
+              ),
+              TableCell(
+                verticalAlignment: TableCellVerticalAlignment.middle,
+                child: TextButton(
+                  onPressed: () {
+                    if (settings.shouldRepeat) {
+                      if (_repeatingTimers.containsKey(settings)) {
+                        // Stop the timer.
+                        _repeatingTimers[settings]!.cancel();
                         setState(() {
-                          settings.requestHasBody = value;
+                          _repeatingTimers.remove(settings);
                         });
-                      },
-              ),
-              ShadInput(
-                initialValue: '200',
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  setState(() {
-                    settings.responseCode = int.tryParse(value) ?? 200;
-                  });
-                },
-              ),
-              ShadCheckbox(
-                value: settings.responseHasBody,
-                onChanged: (value) {
-                  setState(() {
-                    settings.responseHasBody = value;
-                  });
-                },
-              ),
-              ShadCheckbox(
-                value: settings.shouldComplete,
-                onChanged: (value) {
-                  setState(() {
-                    settings.shouldComplete = value;
-                  });
-                },
-              ),
-              ShadCheckbox(
-                value: settings.shouldRepeat,
-                onChanged: (value) {
-                  setState(() {
-                    settings.shouldRepeat = value;
-                  });
-                },
-              ),
-              TextButton(
-                onPressed: () {
-                  if (settings.shouldRepeat) {
-                    if (_repeatingTimers.containsKey(settings)) {
-                      // Stop the timer.
-                      _repeatingTimers[settings]!.cancel();
-                      setState(() {
-                        _repeatingTimers.remove(settings);
-                      });
-                    } else {
-                      // Start the timer.
-                      final timer = Timer.periodic(const Duration(seconds: 1), (
-                        timer,
-                      ) {
-                        settings.action(
-                          logWriteln: widget._logWriteln,
-                          requestHasBody: settings.requestHasBody ?? false,
-                          responseCode: settings.responseCode,
-                          responseHasBody: settings.responseHasBody,
-                          shouldComplete: settings.shouldComplete,
+                      } else {
+                        // Start the timer.
+                        final timer = Timer.periodic(
+                          const Duration(seconds: 1),
+                          (timer) {
+                            settings.action(
+                              logWriteln: widget._logWriteln,
+                              requestHasBody: settings.requestHasBody ?? false,
+                              responseCode: settings.responseCode,
+                              responseHasBody: settings.responseHasBody,
+                              shouldComplete: settings.shouldComplete,
+                            );
+                          },
                         );
-                      });
-                      setState(() {
-                        _repeatingTimers[settings] = timer;
-                      });
+                        setState(() {
+                          _repeatingTimers[settings] = timer;
+                        });
+                      }
+                    } else {
+                      // Just run once.
+                      settings.action(
+                        logWriteln: widget._logWriteln,
+                        requestHasBody: settings.requestHasBody ?? false,
+                        responseCode: settings.responseCode,
+                        responseHasBody: settings.responseHasBody,
+                        shouldComplete: settings.shouldComplete,
+                      );
                     }
-                  } else {
-                    // Just run once.
-                    settings.action(
-                      logWriteln: widget._logWriteln,
-                      requestHasBody: settings.requestHasBody ?? false,
-                      responseCode: settings.responseCode,
-                      responseHasBody: settings.responseHasBody,
-                      shouldComplete: settings.shouldComplete,
-                    );
-                  }
-                },
-                child: Text(
-                  settings.shouldRepeat
-                      ? (_repeatingTimers.containsKey(settings)
-                            ? 'Stop'
-                            : 'Start')
-                      : 'Go',
+                  },
+                  child: Text(
+                    settings.shouldRepeat
+                        ? (_repeatingTimers.containsKey(settings)
+                              ? 'Stop'
+                              : 'Start')
+                        : 'Go',
+                  ),
                 ),
               ),
             ],
