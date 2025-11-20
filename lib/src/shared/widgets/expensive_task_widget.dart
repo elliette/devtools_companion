@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../shared/ui/theme.dart';
+import '../ui/theme.dart';
 
 class ExpensiveTaskWidget extends StatefulWidget {
   const ExpensiveTaskWidget({
@@ -110,9 +110,7 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
                 ),
               ],
             ),
-            if (widget.children != null) ...[
-              Row(children: widget.children!),
-            ],
+            if (widget.children != null) ...[Row(children: widget.children!)],
           ],
         ),
       ),
