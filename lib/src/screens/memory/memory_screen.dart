@@ -4,9 +4,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
+import '../../shared/ui/theme.dart';
 
-const _chars =
-    'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 
 void _generateObjectsIsolate(Map<String, dynamic> args) async {
   final sendPort = args['sendPort'] as SendPort;
@@ -17,8 +17,6 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
   final allocatedObjects = <String>[];
   final stopwatch = Stopwatch()..start();
 
-  // We want to print 1% of the strings. Printing every 100th string
-  // accomplishes this.
   for (var i = 0; i < objectCount; i++) {
     final length = random.nextInt(maxSize - minSize + 1) + minSize;
     final randomString = String.fromCharCodes(
@@ -27,7 +25,7 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
         (_) => _chars.codeUnitAt(random.nextInt(_chars.length)),
       ),
     );
-  
+
     allocatedObjects.add(randomString);
     if (stopwatch.elapsedMilliseconds > 50) {
       sendPort.send({'type': 'progress', 'count': i + 1});
@@ -53,11 +51,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   final _allocatedObjects = <String>[];
 
   Timer? _timer;
-  int? _totalPhysicalMemory;
-  int? _freePhysicalMemory;
-  int? _totalVirtualMemory;
-  int? _freeVirtualMemory;
-  int? _virtualMemorySize;
+
 
   bool _isGenerating = false;
   int _generationProgress = 0;
@@ -71,8 +65,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     _minSizeController = TextEditingController(text: '1000');
     _maxSizeController = TextEditingController(text: '100000');
 
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
-    });
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {});
   }
 
   @override
@@ -86,7 +79,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
     super.dispose();
   }
 
-  
   Future<void> _allocateObjects() async {
     setState(() {
       _isGenerating = true;
@@ -111,15 +103,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
     }
 
     _receivePort = ReceivePort();
-    _isolate = await Isolate.spawn(
-      _generateObjectsIsolate,
-      {
-        'sendPort': _receivePort!.sendPort,
-        'objectCount': objectCount,
-        'minSize': minSize,
-        'maxSize': maxSize,
-      },
-    );
+    _isolate = await Isolate.spawn(_generateObjectsIsolate, {
+      'sendPort': _receivePort!.sendPort,
+      'objectCount': objectCount,
+      'minSize': minSize,
+      'maxSize': maxSize,
+    });
 
     _receivePort!.listen((message) {
       if (message is Map) {
@@ -134,8 +123,9 @@ class _MemoryScreenState extends State<MemoryScreen> {
             _allocatedObjects.addAll(newObjects);
             ShadToaster.of(context).show(
               ShadToast(
-                description:
-                    Text('Allocated ${newObjects.length} new string objects.'),
+                description: Text(
+                  'Allocated ${newObjects.length} new string objects.',
+                ),
               ),
             );
             _stopGeneration();
@@ -166,11 +156,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
     );
   }
 
-  String _formatMemory(int? bytes) {
-    if (bytes == null) return 'N/A';
-    return '${(bytes / 1024 / 1024).round()} MB';
-  }
-
+ 
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -185,7 +171,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   _isGenerating
                       ? 'Generating objects... $_generationProgress so far.'
                       : 'Use these tools to test memory management in your application.\n'
-                          'Currently holding onto ${_allocatedObjects.length} string objects.',
+                            'Currently holding onto ${_allocatedObjects.length} string objects.',
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -193,7 +179,12 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   children: [
                     if (_isGenerating) ...[
                       const ShadProgress(),
-                      const SizedBox(height: 16),
+                      const Padding(
+                        padding: EdgeInsets.all(defaultSpacing),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.all(defaultSpacing),
+                      ),
                       ShadButton.destructive(
                         onPressed: _stopGeneration,
                         child: const Text('Stop Generation'),
@@ -204,25 +195,33 @@ class _MemoryScreenState extends State<MemoryScreen> {
                         child: const Text('Allocate Objects'),
                       ),
                     ],
-                    const SizedBox(height: 16),
+                    const Padding(
+                      padding: EdgeInsets.all(defaultSpacing),
+                    ),
                     ShadInputFormField(
                       controller: _objectCountController,
                       label: const Text('Number of Objects'),
                       keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.all(defaultSpacing),
+                    ),
                     ShadInputFormField(
                       controller: _minSizeController,
                       label: const Text('Min String Size'),
                       keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(height: 8),
+                    const Padding(
+                      padding: EdgeInsets.all(defaultSpacing),
+                    ),
                     ShadInputFormField(
                       controller: _maxSizeController,
                       label: const Text('Max String Size'),
                       keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(height: 16),
+                    const Padding(
+                      padding: EdgeInsets.all(defaultSpacing),
+                    ),
                     ShadButton.destructive(
                       onPressed: _clearObjects,
                       child: const Text('Clear Allocated Objects'),
@@ -230,25 +229,10 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              ShadCard(
-                title: const Text('System Memory'),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                        'Total Physical Memory: ${_formatMemory(_totalPhysicalMemory)}'),
-                    Text(
-                        'Free Physical Memory: ${_formatMemory(_freePhysicalMemory)}'),
-                    Text(
-                        'Total Virtual Memory: ${_formatMemory(_totalVirtualMemory)}'),
-                    Text(
-                        'Free Virtual Memory: ${_formatMemory(_freeVirtualMemory)}'),
-                    Text(
-                        'Virtual Memory Size: ${_formatMemory(_virtualMemorySize)}'),
-                  ],
-                ),
+              const Padding(
+                padding: EdgeInsets.all(defaultSpacing),
               ),
+     
             ],
           ),
         ),
