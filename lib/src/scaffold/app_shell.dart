@@ -9,10 +9,12 @@ class AppShell extends StatelessWidget {
     super.key,
     required this.screenName,
     required this.screenBody,
+    this.showDrawer = true,
   });
 
   final String screenName;
   final Widget screenBody;
+  final bool showDrawer;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +34,7 @@ class AppShell extends StatelessWidget {
           ),
         ],
       ),
-      drawer: const AppDrawer(),
+      drawer: showDrawer ? const AppDrawer() : null,
       body: Center(child: screenBody),
     );
   }
