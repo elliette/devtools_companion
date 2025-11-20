@@ -1,5 +1,6 @@
 import 'dart:io' as io;
 
+import 'package:dio/dio.dart';
 import 'package:http/http.dart' as http;
 
 import 'http_server.dart';
@@ -7,6 +8,8 @@ import 'http_server.dart';
 /// The HTTP client code that makes HTTP requests and logs various things.
 class HttpClient {
   final io.HttpClient _client = io.HttpClient();
+
+  final _dio = Dio();
 
   /// Sends an HTTP GET request using `dart:io`, and awaits a response.
   void get({
@@ -182,6 +185,44 @@ class HttpClient {
       body: requestHasBody ? {'name': 'doodle', 'color': 'blue'} : null,
     );
     logWriteln('Received package:http DELETE response: ${response.body}');
+  }
+
+  void dioGet({
+    required Logger logWriteln,
+    required bool requestHasBody,
+    required bool responseHasBody,
+    required int responseCode,
+    bool shouldComplete = true,
+  }) async {
+    final uri = _computeUri(
+      responseHasBody: responseHasBody,
+      shouldComplete: shouldComplete,
+      responseCode: responseCode,
+    );
+    logWriteln('Sending Dio GET to $uri...');
+    // No body.
+    final response = await _dio.getUri(uri);
+    logWriteln('Recived Dio GET response; headers: ${response.headers}');
+  }
+
+  void dioPost({
+    required Logger logWriteln,
+    required bool requestHasBody,
+    required bool responseHasBody,
+    required int responseCode,
+    bool shouldComplete = true,
+  }) async {
+    final uri = _computeUri(
+      responseHasBody: responseHasBody,
+      shouldComplete: shouldComplete,
+      responseCode: responseCode,
+    );
+    logWriteln('Sending Dio POST to $uri...');
+    final response = await _dio.postUri(
+      uri,
+      data: requestHasBody ? {'a': 'b', 'c': 'd'} : null,
+    );
+    logWriteln('Received Dio POST response: $response');
   }
 
   /// Computes a [Uri] from various configuration.

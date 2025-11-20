@@ -134,6 +134,8 @@ class _RequestTableState extends State<RequestTable> {
       type: _RequestType.packageHttpDelete,
       action: _httpClient.packageHttpDelete,
     ),
+    _RequestSettings(type: _RequestType.dioGet, action: _httpClient.dioGet),
+    _RequestSettings(type: _RequestType.dioPost, action: _httpClient.dioPost),
   ];
 
   @override
@@ -355,7 +357,9 @@ enum _RequestType {
   packageHttpGet('package:http GET'),
   packageHttpPost('package:http POST'),
   packageHttpPostStreamed('package:http POST (streamed)'),
-  packageHttpDelete('package:http DELETE');
+  packageHttpDelete('package:http DELETE'),
+  dioGet('Dio GET'),
+  dioPost('Dio POST');
   // TODO: WebSocket
   // TODO: cronet_http - https://pub.dev/packages/cronet_http
   // TODO: ok_http - https://pub.dev/packages/ok_http
