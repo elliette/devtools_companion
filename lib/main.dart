@@ -28,30 +28,23 @@ class _DevToolsCompanionAppState extends State<DevToolsCompanionApp> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
-      builder: (context, themeNotifier, child) {
-        return MaterialApp(
-          home: ShadApp.router(
-            title: 'DevTools Companion App',
-            theme: ShadThemeData(
-              brightness: Brightness.light,
-              colorScheme: const ShadSlateColorScheme.light(
-                primary: _primaryLight,
-              ),
-            ),
-            darkTheme: ShadThemeData(
-              brightness: Brightness.dark,
-              colorScheme: const ShadSlateColorScheme.dark(
-                primary: _primaryDark,
-              ),
-            ),
-            themeMode: themeNotifier.themeMode,
-            routerConfig: router,
-            builder: (context, child) {
-              return ShadToaster(child: child!);
-            },
-          ),
-        );
-      },
+      builder: (context, themeNotifier, child) => ShadApp(
+        title: 'DevTools Companion App',
+        theme: ShadThemeData(
+          brightness: Brightness.light,
+          colorScheme: const ShadSlateColorScheme.light(primary: _primaryLight),
+        ),
+        darkTheme: ShadThemeData(
+          brightness: Brightness.dark,
+          colorScheme: const ShadSlateColorScheme.dark(primary: _primaryDark),
+        ),
+        themeMode: themeNotifier.themeMode,
+        initialRoute: home,
+        onGenerateRoute: onGenerateRoute,
+        builder: (context, child) {
+          return ShadToaster(child: child!);
+        },
+      ),
     );
   }
 }
