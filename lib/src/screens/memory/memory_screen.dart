@@ -47,12 +47,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
   late final TextEditingController _objectCountController;
   late final TextEditingController _minSizeController;
   late final TextEditingController _maxSizeController;
-
   final _allocatedObjects = <String>[];
-
-  Timer? _timer;
-
-
   bool _isGenerating = false;
   int _generationProgress = 0;
   Isolate? _isolate;
@@ -64,8 +59,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
     _objectCountController = TextEditingController(text: '100000');
     _minSizeController = TextEditingController(text: '1000');
     _maxSizeController = TextEditingController(text: '100000');
-
-    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {});
   }
 
   @override
@@ -73,7 +66,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
     _objectCountController.dispose();
     _minSizeController.dispose();
     _maxSizeController.dispose();
-    _timer?.cancel();
     _isolate?.kill(priority: Isolate.immediate);
     _receivePort?.close();
     super.dispose();
@@ -156,7 +148,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
     );
   }
 
- 
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -171,7 +162,7 @@ class _MemoryScreenState extends State<MemoryScreen> {
                   _isGenerating
                       ? 'Generating objects... $_generationProgress so far.'
                       : 'Use these tools to test memory management in your application.\n'
-                            'Currently holding onto ${_allocatedObjects.length} string objects.',
+                        'Currently holding onto ${_allocatedObjects.length} string objects.',
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -232,7 +223,6 @@ class _MemoryScreenState extends State<MemoryScreen> {
               const Padding(
                 padding: EdgeInsets.all(defaultSpacing),
               ),
-     
             ],
           ),
         ),
