@@ -15,6 +15,7 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
   final maxSize = args['maxSize'] as int;
   final random = Random();
   final allocatedObjects = <String>[];
+  final batch = <String>[];
   final stopwatch = Stopwatch()..start();
 
   for (var i = 0; i < objectCount; i++) {
@@ -27,13 +28,30 @@ void _generateObjectsIsolate(Map<String, dynamic> args) async {
     );
 
     allocatedObjects.add(randomString);
-    if (stopwatch.elapsedMilliseconds > 50) {
-      sendPort.send({'type': 'progress', 'count': i + 1});
+    batch.add(randomString);
+    if (stopwatch.elapsedMilliseconds > 50 || batch.length >= 500) {
+      sendPort.send({
+        'type': 'progress',
+        'count': i + 1,
+        'batch': List<String>.from(batch),
+      });
+      batch.clear();
       await Future.delayed(Duration.zero);
       stopwatch.reset();
     }
   }
-  sendPort.send({'type': 'complete', 'data': allocatedObjects});
+  if (batch.isNotEmpty) {
+    sendPort.send({
+      'type': 'progress',
+      'count': allocatedObjects.length,
+      'batch': List<String>.from(batch),
+    });
+  }
+  sendPort.send({
+    'type': 'complete',
+    'count': allocatedObjects.length,
+    'batch': <String>[],
+  });
 }
 
 class MemoryScreen extends StatefulWidget {
@@ -106,17 +124,25 @@ class _MemoryScreenState extends State<MemoryScreen> {
       if (message is Map) {
         switch (message['type']) {
           case 'progress':
+            final newObjects =
+                (message['batch'] as List<dynamic>? ?? []).cast<String>();
+            if (newObjects.isNotEmpty) {
+              _allocatedObjects.addAll(newObjects);
+            }
             setState(() {
               _generationProgress = message['count'] as int;
             });
             break;
           case 'complete':
-            final newObjects = message['data'] as List<String>;
-            _allocatedObjects.addAll(newObjects);
+            final newObjects =
+                (message['batch'] as List<dynamic>? ?? []).cast<String>();
+            if (newObjects.isNotEmpty) {
+              _allocatedObjects.addAll(newObjects);
+            }
             ShadToaster.of(context).show(
               ShadToast(
                 description: Text(
-                  'Allocated ${newObjects.length} new string objects.',
+                  'Allocated ${_allocatedObjects.length} string objects.',
                 ),
               ),
             );
@@ -150,14 +176,16 @@ class _MemoryScreenState extends State<MemoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 350),
-          child: Column(
-            children: [
-              ShadCard(
-                title: const Text('Memory Tools'),
+    return Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.all(defaultSpacing),
+        children: [
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: ShadCard(
+                title: const Text('Memory Tests'),
                 description: Text(
                   _isGenerating
                       ? 'Generating objects... $_generationProgress so far.'
@@ -176,56 +204,77 @@ class _MemoryScreenState extends State<MemoryScreen> {
                       const Padding(
                         padding: EdgeInsets.all(defaultSpacing),
                       ),
-                      ShadButton.destructive(
-                        onPressed: _stopGeneration,
-                        child: const Text('Stop Generation'),
+                      Semantics(
+                        label: 'stop generation',
+                        button: true,
+                        child: ShadButton.destructive(
+                          onPressed: _stopGeneration,
+                          child: const Text('Stop Generation'),
+                        ),
                       ),
                     ] else ...[
-                      ShadButton(
-                        onPressed: _allocateObjects,
-                        child: const Text('Allocate Objects'),
+                      Semantics(
+                        label: 'allocate objects',
+                        button: true,
+                        child: ShadButton(
+                          onPressed: _allocateObjects,
+                          child: const Text('Allocate Objects'),
+                        ),
                       ),
                     ],
                     const Padding(
                       padding: EdgeInsets.all(defaultSpacing),
                     ),
-                    ShadInputFormField(
-                      controller: _objectCountController,
-                      label: const Text('Number of Objects'),
-                      keyboardType: TextInputType.number,
+                    Semantics(
+                      label: 'number of objects',
+                      child: ShadInputFormField(
+                        key: const ValueKey('numberOfObjectsField'),
+                        controller: _objectCountController,
+                        label: const Text('Number of Objects'),
+                        keyboardType: TextInputType.number,
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.all(defaultSpacing),
                     ),
-                    ShadInputFormField(
-                      controller: _minSizeController,
-                      label: const Text('Min String Size'),
-                      keyboardType: TextInputType.number,
+                    Semantics(
+                      label: 'minimum string size',
+                      child: ShadInputFormField(
+                        key: const ValueKey('minStringSizeField'),
+                        controller: _minSizeController,
+                        label: const Text('Min String Size'),
+                        keyboardType: TextInputType.number,
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.all(defaultSpacing),
                     ),
-                    ShadInputFormField(
-                      controller: _maxSizeController,
-                      label: const Text('Max String Size'),
-                      keyboardType: TextInputType.number,
+                    Semantics(
+                      label: 'maximum string size',
+                      child: ShadInputFormField(
+                        key: const ValueKey('maxStringSizeField'),
+                        controller: _maxSizeController,
+                        label: const Text('Max String Size'),
+                        keyboardType: TextInputType.number,
+                      ),
                     ),
                     const Padding(
                       padding: EdgeInsets.all(defaultSpacing),
                     ),
-                    ShadButton.destructive(
-                      onPressed: _clearObjects,
-                      child: const Text('Clear Allocated Objects'),
+                    Semantics(
+                      label: 'clear allocated objects',
+                      button: true,
+                      child: ShadButton.destructive(
+                        onPressed: _clearObjects,
+                        child: const Text('Clear Allocated Objects'),
+                      ),
                     ),
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(defaultSpacing),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
