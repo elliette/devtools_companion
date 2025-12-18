@@ -7,6 +7,8 @@ import '../screens/inspector/inspector_screen.dart';
 import '../screens/logging/logging_screen.dart';
 import '../screens/memory/memory_screen.dart';
 import '../screens/network/network_screen.dart';
+import '../screens/performance/data/paintings.dart';
+import '../screens/performance/painting_details.dart';
 import '../screens/performance/performance_screen.dart';
 import '../screens/timeline/timeline_screen.dart';
 import './app_shell.dart';
@@ -28,6 +30,12 @@ enum AppRoute {
     path: '/timeline',
     // TODO: Choose a different icon.
     iconAsset: 'assets/icons/debugger.png',
+  ),
+  performanceDetails(
+    name: 'Performance Details',
+    path: '/performance/details',
+    iconAsset: 'assets/icons/performance.png',
+    showInAppDrawer: false,
   ),
   network(
     name: 'Network',
@@ -55,10 +63,12 @@ enum AppRoute {
     required this.name,
     required this.path,
     required this.iconAsset,
+    this.showInAppDrawer = true,
   });
   final String path;
   final String name;
   final String iconAsset;
+  final bool showInAppDrawer;
 
   static AppRoute fromPath(String? path) {
     if (path == null) return AppRoute.home;
@@ -91,6 +101,13 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
           return const AppShell(
             screenName: 'Timeline',
             screenBody: TimelineScreen(),
+          );
+        case AppRoute.performanceDetails:
+          final painting = settings.arguments as Painting;
+          return AppShell(
+            screenName: 'Performance',
+            screenBody: PaintingDetailsScreen(painting: painting),
+            showDrawer: false,
           );
         case AppRoute.network:
           return const AppShell(
