@@ -2,12 +2,12 @@ import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../shared/ui/theme.dart';
-import 'data/paintings.dart';
+import 'data/fruits.dart';
 
-class PaintingDetailsScreen extends StatelessWidget {
-  const PaintingDetailsScreen({super.key, required this.painting});
+class FruitDetailsScreen extends StatelessWidget {
+  const FruitDetailsScreen({super.key, required this.fruit});
 
-  final Painting painting;
+  final Fruit fruit;
 
   @override
   Widget build(BuildContext context) {
@@ -22,12 +22,12 @@ class PaintingDetailsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: densePadding),
           child: Center(
             child: Text(
-              painting.title,
+              fruit.title,
               style: theme.textTheme.p.copyWith(fontStyle: FontStyle.italic),
             ),
           ),
         ),
-        child: Image.network(painting.imageUrl),
+        child: Image.asset(fruit.imageUrl),
       ),
     );
   }

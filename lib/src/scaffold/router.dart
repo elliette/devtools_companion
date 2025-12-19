@@ -7,8 +7,8 @@ import '../screens/inspector/inspector_screen.dart';
 import '../screens/logging/logging_screen.dart';
 import '../screens/memory/memory_screen.dart';
 import '../screens/network/network_screen.dart';
-import '../screens/performance/data/paintings.dart';
-import '../screens/performance/painting_details.dart';
+import '../screens/performance/data/fruits.dart';
+import '../screens/performance/fruit_details.dart';
 import '../screens/performance/performance_screen.dart';
 import '../screens/timeline/timeline_screen.dart';
 import './app_shell.dart';
@@ -98,10 +98,10 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
             screenBody: PerformanceScreen(),
           );
         case AppRoute.performanceDetails:
-          final painting = settings.arguments as Painting;
+          final fruit = settings.arguments as Fruit;
           return AppShell(
             screenName: 'Performance',
-            screenBody: PaintingDetailsScreen(painting: painting),
+            screenBody: FruitDetailsScreen(fruit: fruit),
             showDrawer: false,
           );
         case AppRoute.timeline:

@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:shadcn_ui/shadcn_ui.dart';
 
 import '../../shared/ui/theme.dart';
-import 'paintings_list.dart';
+import 'fruit_list.dart';
 import 'performance_controller.dart';
 import 'performance_saboteur.dart';
 import 'performance_settings.dart';
@@ -43,12 +43,12 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Text('Cezanne gallery', style: theme.textTheme.h2),
+                  Text('Fruits & Veggies', style: theme.textTheme.h2),
                   JankSettingsPopover(controller: _controller),
                 ],
               ),
             ),
-            const Expanded(child: PaintingsList()),
+            const Expanded(child: FruitsList()),
           ],
         ),
         ValueListenableBuilder(
