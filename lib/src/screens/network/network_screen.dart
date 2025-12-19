@@ -116,7 +116,6 @@ class _RequestTableState extends State<RequestTable> {
     super.dispose();
   }
 
-  // ... [Keep your settingsList initialization here exactly as it was] ...
   late List<_RequestSettings> settingsList = [
     _RequestSettings(
       type: _RequestType.httpGet,
