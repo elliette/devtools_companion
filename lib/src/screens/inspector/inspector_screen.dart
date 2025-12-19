@@ -56,7 +56,7 @@ class InspectorScreen extends StatefulWidget {
 
 class _InspectorScreenState extends State<InspectorScreen> {
   DateTime? _selectedDate;
-  Meal _selectedMeal = meals[2]; // Default to Spaghetti
+  Meal? _selectedMeal;
   CalendarView _calendarView = CalendarView.month;
 
   void _onDateSelected(DateTime date) {
@@ -71,7 +71,7 @@ class _InspectorScreenState extends State<InspectorScreen> {
     });
   }
 
-  void _onMealSelected(Meal meal) {
+  void _onMealSelected(Meal? meal) {
     setState(() {
       _selectedMeal = meal;
     });
@@ -92,15 +92,18 @@ class _InspectorScreenState extends State<InspectorScreen> {
           Expanded(
             child: _selectedDate == null
                 ? CalendarWidget(
-              onDateSelected: _onDateSelected,
-              initialView: _calendarView,
-              onViewChanged: _onCalendarViewChanged,
-            )
+                    onDateSelected: _onDateSelected,
+                    initialView: _calendarView,
+                    onViewChanged: _onCalendarViewChanged,
+                  )
                 : DailyMealPlan(
-              date: _selectedDate!,
-              onTap: _showCalendar,
-              onMealSelected: _onMealSelected,
-            ),
+                    date: _selectedDate!,
+                    onTap: () {
+                      _showCalendar();
+                      _onMealSelected(null);
+                    },
+                    onMealSelected: _onMealSelected,
+                  ),
           ),
           Expanded(child: RecipeWidget(meal: _selectedMeal)),
         ],
@@ -140,33 +143,63 @@ class DailyMealPlan extends StatelessWidget {
             Center(
               child: Text(
                 '${date.month}/${date.day}/${date.year} - $dayName',
-                style: Theme
-                    .of(context)
-                    .textTheme
-                    .headlineSmall,
+                style: Theme.of(context).textTheme.headlineSmall,
               ),
             ),
             const SizedBox(height: largeSpacing),
-            InkWell(
-              onTap: () => onMealSelected(meals[0]),
-              child: const Padding(
-                padding: EdgeInsets.all(denseSpacing),
-                child: Text('Breakfast: Overflowing Oatmeal'),
-              ),
-            ),
-            InkWell(
-              onTap: () => onMealSelected(meals[1]),
-              child: const Padding(
-                padding: EdgeInsets.all(denseSpacing),
-                child: Text('Lunch: Salad'),
-              ),
-            ),
-            InkWell(
-              onTap: () => onMealSelected(meals[2]),
-              child: const Padding(
-                padding: EdgeInsets.all(denseSpacing),
-                child: Text('Dinner: Spaghetti Carbonara'),
-              ),
+            Table(
+              columnWidths: const {
+                0: IntrinsicColumnWidth(),
+                1: IntrinsicColumnWidth(),
+              },
+              defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+              children: [
+                TableRow(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(right: denseSpacing),
+                      child: Text('Breakfast:'),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ShadButton.ghost(
+                        onPressed: () => onMealSelected(meals[0]),
+                        child: Text(meals[0].name),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(right: denseSpacing),
+                      child: Text('Lunch:'),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ShadButton.ghost(
+                        onPressed: () => onMealSelected(meals[1]),
+                        child: Text(meals[1].name),
+                      ),
+                    ),
+                  ],
+                ),
+                TableRow(
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(right: denseSpacing),
+                      child: Text('Dinner:'),
+                    ),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ShadButton.ghost(
+                        onPressed: () => onMealSelected(meals[2]),
+                        child: Text(meals[2].name),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
@@ -254,9 +287,14 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
   @override
   Widget build(BuildContext context) {
     final monthName = DateFormat('MMMM yyyy').format(_currentMonth);
-    final daysInMonth = DateTime(_currentMonth.year, _currentMonth.month + 1, 0).day;
-    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month, 1);
-    final weekdayOfFirstDay = firstDayOfMonth.weekday; // Monday is 1, Sunday is 7
+    final daysInMonth = DateTime(
+      _currentMonth.year,
+      _currentMonth.month + 1,
+      0,
+    ).day;
+    final firstDayOfMonth = DateTime(_currentMonth.year, _currentMonth.month);
+    final weekdayOfFirstDay =
+        firstDayOfMonth.weekday; // Monday is 1, Sunday is 7
 
     final List<Widget> calendarItems = [];
     for (int i = 1; i < weekdayOfFirstDay; i++) {
@@ -268,9 +306,7 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
       calendarItems.add(
         InkWell(
           onTap: () => widget.onDateSelected(date),
-          child: Center(
-            child: Text('$i'),
-          ),
+          child: Center(child: Text('$i')),
         ),
       );
     }
@@ -303,10 +339,9 @@ class _MonthViewWidgetState extends State<MonthViewWidget> {
             Text('Sun'),
           ],
         ),
-        const SizedBox(height: denseSpacing),
         GridView.count(
-          shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
+          shrinkWrap: true,
           crossAxisCount: 7,
           childAspectRatio: 1.5,
           children: calendarItems,
@@ -393,42 +428,53 @@ class _WeekViewWidgetState extends State<WeekViewWidget> {
   }
 }
 
-
-  class RecipeWidget extends StatelessWidget {
+class RecipeWidget extends StatelessWidget {
   const RecipeWidget({super.key, required this.meal});
 
-  final Meal meal;
+  final Meal? meal;
 
   @override
   Widget build(BuildContext context) {
     return ShadCard(
       child: Padding(
         padding: const EdgeInsets.all(largeSpacing),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              meal.name,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: denseSpacing),
-            Text(meal.description),
-            const SizedBox(height: largeSpacing),
-            const Text(
-              'Ingredients:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: denseSpacing),
-            for (final ingredient in meal.ingredients)
-              Row(
+        child: meal == null
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Select a meal to view its recipe.',
+                      style: ShadTheme.of(context).textTheme.h4,
+                    ),
+                    const SizedBox(height: largeSpacing),
+                    Image.asset('assets/images/habanero.jpg', height: 200),
+                  ],
+                ),
+              )
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('- '),
-                  Text(ingredient),
+                  Text(
+                    meal!.name,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  const SizedBox(height: denseSpacing),
+                  Text(meal!.description),
+                  const SizedBox(height: largeSpacing),
+                  const Text(
+                    'Ingredients:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: denseSpacing),
+                  for (final ingredient in meal!.ingredients)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [const Text('- '), Text(ingredient)],
+                    ),
                 ],
               ),
-          ],
-        ),
       ),
     );
   }
-  }
+}
