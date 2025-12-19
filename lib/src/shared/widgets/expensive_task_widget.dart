@@ -1,21 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shadcn_ui/shadcn_ui.dart';
 
-import '../../shared/ui/theme.dart';
+import '../ui/theme.dart';
 
 class ExpensiveTaskWidget extends StatefulWidget {
   const ExpensiveTaskWidget({
     super.key,
     required this.title,
     required this.task,
-    this.buttonText = 'Run',
     this.children,
   });
 
   final String title;
   final FutureOr<String> Function() task;
-  final String buttonText;
   final List<Widget>? children;
 
   @override
@@ -77,18 +76,20 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
             const SizedBox(height: denseSpacing),
             Row(
               children: [
-                if (_isRunning)
-                  const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                else
-                  FilledButton.icon(
-                    onPressed: _runTask,
-                    icon: const Icon(Icons.play_arrow),
-                    label: Text(widget.buttonText),
-                  ),
+                ShadIconButton(
+                  icon: _isRunning
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.play_arrow),
+                  onPressed: _runTask,
+                  enabled: !_isRunning,
+                ),
                 const SizedBox(width: largeSpacing),
                 Expanded(
                   child: Column(
@@ -110,9 +111,7 @@ class _ExpensiveTaskWidgetState extends State<ExpensiveTaskWidget> {
                 ),
               ],
             ),
-            if (widget.children != null) ...[
-              Row(children: widget.children!),
-            ],
+            if (widget.children != null) ...[Row(children: widget.children!)],
           ],
         ),
       ),

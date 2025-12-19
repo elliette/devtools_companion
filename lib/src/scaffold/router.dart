@@ -10,6 +10,7 @@ import '../screens/network/network_screen.dart';
 import '../screens/performance/data/paintings.dart';
 import '../screens/performance/painting_details.dart';
 import '../screens/performance/performance_screen.dart';
+import '../screens/timeline/timeline_screen.dart';
 import './app_shell.dart';
 
 enum AppRoute {
@@ -29,6 +30,12 @@ enum AppRoute {
     path: '/performance/details',
     iconAsset: 'assets/icons/performance.png',
     showInAppDrawer: false,
+  ),
+  timeline(
+    name: 'Timeline',
+    path: '/timeline',
+    // TODO: Choose a different icon.
+    iconAsset: 'assets/icons/debugger.png',
   ),
   network(
     name: 'Network',
@@ -96,6 +103,11 @@ Route<dynamic> onGenerateRoute(RouteSettings settings) {
             screenName: 'Performance',
             screenBody: PaintingDetailsScreen(painting: painting),
             showDrawer: false,
+          );
+        case AppRoute.timeline:
+          return const AppShell(
+            screenName: 'Timeline',
+            screenBody: TimelineScreen(),
           );
         case AppRoute.network:
           return const AppShell(

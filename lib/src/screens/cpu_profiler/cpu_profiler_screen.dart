@@ -4,7 +4,7 @@ import 'dart:isolate';
 import 'package:flutter/material.dart';
 
 import '../../shared/ui/theme.dart';
-import 'expensive_task_widget.dart';
+import '../../shared/widgets/expensive_task_widget.dart';
 import 'party_poppers.dart';
 
 class CpuProfilerScreen extends StatefulWidget {
