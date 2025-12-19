@@ -13,7 +13,7 @@ class HttpClient {
 
   /// Sends an HTTP GET request using `dart:io`, and awaits a response.
   void get({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -24,16 +24,16 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending GET to $uri...');
+    networkNotifier('Sending GET to $uri...');
     final request = await _client.getUrl(uri);
-    logWriteln('Sent GET.');
+    networkNotifier('Sent GET.');
     final response = await request.close();
-    logWriteln('Received GET response: $response');
+    networkNotifier('Received GET response: $response');
   }
 
   /// Sends an HTTP POST request using `dart:io`, and awaits a response.
   void post({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -44,19 +44,19 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending POST to $uri...');
+    networkNotifier('Sending POST to $uri...');
     final request = await _client.postUrl(uri);
-    logWriteln('Sent POST.');
+    networkNotifier('Sent POST.');
     if (requestHasBody) {
       request.write('Request Body');
     }
     final response = await request.close();
-    logWriteln('Received POST response: $response');
+    networkNotifier('Received POST response: $response');
   }
 
   /// Sends an HTTP PUT request using `dart:io`, and awaits a response.
   void put({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -67,19 +67,19 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending PUT to $uri...');
+    networkNotifier('Sending PUT to $uri...');
     final request = await _client.putUrl(uri);
-    logWriteln('Sent PUT.');
+    networkNotifier('Sent PUT.');
     if (requestHasBody) {
       request.write('Request Body');
     }
     final response = await request.close();
-    logWriteln('Received PUT response: $response');
+    networkNotifier('Received PUT response: $response');
   }
 
   /// Sends an HTTP DELETE request using `dart:io`, and awaits a response.
   void delete({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -90,19 +90,19 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending DELETE to $uri...');
+    networkNotifier('Sending DELETE to $uri...');
     final request = await _client.deleteUrl(uri);
-    logWriteln('Sent DELETE.');
+    networkNotifier('Sent DELETE.');
     if (requestHasBody) {
       request.write('Request Body');
     }
     final response = await request.close();
-    logWriteln('Received DELETE response: $response');
+    networkNotifier('Received DELETE response: $response');
   }
 
   /// Sends an HTTP GET request using the http package, and awaits a response.
   void packageHttpGet({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     // Unused.
     required bool requestHasBody,
     required bool responseHasBody,
@@ -114,14 +114,14 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending package:http GET to $uri...');
+    networkNotifier('Sending package:http GET to $uri...');
     final response = await http.get(uri);
-    logWriteln('Received package:http GET response: ${response.body}');
+    networkNotifier('Received package:http GET response: ${response.body}');
   }
 
   /// Sends an HTTP POST request using the http package, and awaits a response.
   void packageHttpPost({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -132,18 +132,18 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending package:http POST...');
+    networkNotifier('Sending package:http POST...');
     final response = await http.post(
       uri,
       body: requestHasBody ? {'name': 'doodle', 'color': 'blue'} : null,
     );
-    logWriteln('Received package:http POST response: ${response.body}');
+    networkNotifier('Received package:http POST response: ${response.body}');
   }
 
   /// Sends a streamed HTTP POST request using the http package, and awaits a
   /// response.
   void packageHttpPostStreamed({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -154,7 +154,7 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending streamed package:http POST to $uri...');
+    networkNotifier('Sending streamed package:http POST to $uri...');
     final request = http.StreamedRequest('POST', uri)
       ..contentLength = 20
       ..sink.add([11, 12, 13, 14, 15, 16, 17, 18, 19, 20])
@@ -162,13 +162,13 @@ class HttpClient {
     await request.sink.close();
     final response = await request.send();
 
-    logWriteln('Received package:http POST response: $response');
+    networkNotifier('Received package:http POST response: $response');
   }
 
   /// Sends an HTTP DELETE request using the http package, and awaits a
   /// response.
   void packageHttpDelete({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -179,16 +179,16 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending package:http DELETE...');
+    networkNotifier('Sending package:http DELETE...');
     final response = await http.delete(
       uri,
       body: requestHasBody ? {'name': 'doodle', 'color': 'blue'} : null,
     );
-    logWriteln('Received package:http DELETE response: ${response.body}');
+    networkNotifier('Received package:http DELETE response: ${response.body}');
   }
 
   void dioGet({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -199,14 +199,14 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending Dio GET to $uri...');
+    networkNotifier('Sending Dio GET to $uri...');
     // No body.
     final response = await _dio.getUri(uri);
-    logWriteln('Recived Dio GET response; headers: ${response.headers}');
+    networkNotifier('Recived Dio GET response; headers: ${response.headers}');
   }
 
   void dioPost({
-    required Logger logWriteln,
+    required Logger networkNotifier,
     required bool requestHasBody,
     required bool responseHasBody,
     required int responseCode,
@@ -217,12 +217,12 @@ class HttpClient {
       shouldComplete: shouldComplete,
       responseCode: responseCode,
     );
-    logWriteln('Sending Dio POST to $uri...');
+    networkNotifier('Sending Dio POST to $uri...');
     final response = await _dio.postUri(
       uri,
       data: requestHasBody ? {'a': 'b', 'c': 'd'} : null,
     );
-    logWriteln('Received Dio POST response: $response');
+    networkNotifier('Received Dio POST response: $response');
   }
 
   /// Computes a [Uri] from various configuration.
