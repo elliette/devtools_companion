@@ -162,6 +162,7 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
       ),
     );
   }
+}
 
 // --- Custom Objects ---
 
