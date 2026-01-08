@@ -163,39 +163,6 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
     );
   }
 
-  Widget _buildNestedTree({required int depth, required int maxDepth}) {
-    if (depth > maxDepth) return const SizedBox.shrink();
-
-    return ShadCard(
-      padding: const EdgeInsets.all(8),
-      backgroundColor: Colors.blue.withAlpha(20 + (depth * 10)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Node Depth $depth'),
-          if (depth < maxDepth)
-            Row(
-              children: [
-                Expanded(
-                  child: _buildNestedTree(depth: depth + 1, maxDepth: maxDepth),
-                ),
-                if (depth % 2 == 0) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _buildNestedTree(
-                      depth: depth + 1,
-                      maxDepth: maxDepth,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-}
-
 // --- Custom Objects ---
 
 class Person {
