@@ -55,8 +55,8 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
     setState(() {
       _tickerSeconds++;
     });
-    // PLACE BREAKPOINT HERE to pause execution repeatedly.
-    // The debugger will stop here every second.
+    // PLACE BREAKPOINT HERE to evaluate the code in the DevTools debugger
+    //
     debugPrint('Ticker tick: $_tickerSeconds');
   }
 
