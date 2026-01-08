@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:collection';
 import 'dart:math';
 
@@ -28,12 +29,35 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
 
   Node? _binaryTreeRoot;
 
+  Timer? _tickerTimer;
+  int _tickerSeconds = 0;
+
   int _counter = 0;
 
   @override
   void initState() {
     super.initState();
     _initializeData();
+    _startTicker();
+  }
+
+  @override
+  void dispose() {
+    _tickerTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTicker() {
+    _tickerTimer = Timer.periodic(const Duration(seconds: 1), _onTick);
+  }
+
+  void _onTick(Timer timer) {
+    setState(() {
+      _tickerSeconds++;
+    });
+    // PLACE BREAKPOINT HERE to pause execution repeatedly.
+    // The debugger will stop here every second.
+    debugPrint('Ticker tick: $_tickerSeconds');
   }
 
   void _initializeData() {
@@ -88,6 +112,26 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
           Text(
             'Use Flutter DevTools "Debugger" to inspect these objects.',
             style: ShadTheme.of(context).textTheme.p,
+          ),
+          const SizedBox(height: largeSpacing),
+          ShadCard(
+            title: const Text('Breakpoint Target'),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ticker Running: $_tickerSeconds s',
+                  style: const TextStyle(
+                    fontFamily: 'RobotoMono',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: denseSpacing),
+                const Text(
+                  'Instructions: Open DevTools Debugger and place a breakpoint inside the "_onTick" method in debugger_screen.dart to pause execution repeatedly.',
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: largeSpacing),
           ShadCard(

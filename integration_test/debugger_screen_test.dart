@@ -24,6 +24,26 @@ void main() {
     // Verify Debugger Title
     expect(find.text('Debugger Object Zoo'), findsOneWidget);
 
+    // Verify Breakpoint Instructions
+    expect(find.text('Breakpoint Target'), findsOneWidget);
+    expect(find.textContaining('Ticker Running:'), findsOneWidget);
+
+    // Verify Ticker Update
+    // Get initial text
+    final tickerFinder = find.textContaining('Ticker Running:');
+    final initialTextWidget = tester.widget<Text>(tickerFinder);
+    final initialText = initialTextWidget.data!;
+
+    // Pump for 2 seconds to allow timer to tick
+    await tester.pump(const Duration(seconds: 2));
+    await tester.pumpAndSettle();
+
+    final updatedTextWidget = tester.widget<Text>(tickerFinder);
+    final updatedText = updatedTextWidget.data!;
+
+    // Assert text has changed (e.g. "Ticker Running: 0s" -> "Ticker Running: 2s")
+    expect(initialText, isNot(equals(updatedText)));
+
     // Verify Data Mutation Controls
     expect(find.text('Add Person (List)'), findsOneWidget);
     expect(find.text('Modify Complex Map'), findsOneWidget);
