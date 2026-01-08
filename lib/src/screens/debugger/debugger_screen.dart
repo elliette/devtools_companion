@@ -158,16 +158,6 @@ class _DebuggerScreenState extends State<DebuggerScreen> {
               ],
             ),
           ),
-          const SizedBox(height: largeSpacing),
-          const Divider(),
-          const SizedBox(height: largeSpacing),
-          Text(
-            'Widget Tree Inspection Target',
-            style: ShadTheme.of(context).textTheme.h4,
-          ),
-          const SizedBox(height: denseSpacing),
-          // Deeply nested widget tree for "Inspector" tab testing
-          _buildNestedTree(depth: 1, maxDepth: 4),
         ],
       ),
     );
