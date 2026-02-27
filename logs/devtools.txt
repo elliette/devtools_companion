@@ -1,0 +1,25 @@
+!! ⚠️ PLEASE REVIEW THIS LOG FOR SENSITIVE INFORMATION BEFORE SHARING ⚠️ !!
+Dart Code extension: 3.129.20260202
+Flutter extension: 3.128.0 (not activated)
+
+App: Visual Studio Code
+App Host: desktop
+Version: mac 1.108.0
+
+
+Logging Categories:
+    DevTools
+
+Wed Feb 18 2026 [13:21:48 GMT-0800 (Pacific Standard Time)] Log file started
+[1:21:48 PM] [DevTools] [Info] Exposing URL: ws://127.0.0.1:57058/P0OVkCxg0DI%3D
+[1:21:48 PM] [DevTools] [Info] Mapping URI: http://127.0.0.1:57058/P0OVkCxg0DI%3D
+[1:21:48 PM] [DevTools] [Info] Mapped URI: http://127.0.0.1:57058/P0OVkCxg0DI%3D
+[1:21:48 PM] [DevTools] [Info] Mapped URL: http://127.0.0.1:57058/P0OVkCxg0DI%3D
+[1:21:48 PM] [DevTools] [Info] Final URL: ws://127.0.0.1:57058/P0OVkCxg0DI=
+[1:21:48 PM] [DevTools] [Info] Spawning /Users/elliottbrooks/dev/flutter/bin/cache/dart-sdk/bin/dart with args ["devtools","--machine","--allow-embedding","--dtd-uri","ws://127.0.0.1:57058/P0OVkCxg0DI="]
+[1:21:48 PM] [DevTools] [Info] ..  with {"toolEnv":{"FLUTTER_HOST":"VSCode","PUB_ENVIRONMENT":"vscode.dart-code","FLUTTER_ROOT":"/Users/elliottbrooks/dev/flutter"}}
+[1:21:48 PM] [DevTools] [Info]     PID: 97304
+[1:21:48 PM] [DevTools] [Info] <== {"event":"server.started","method":"server.started","params":{"host":"127.0.0.1","port":9100,"pid":97367,"protocolVersion":"1.2.0"}}
+[1:22:08 PM] [DevTools] [Info] ==> {"id":"1","method":"vscode.extensions.discover","params":{"rootPaths":["/Users/elliottbrooks/dev/devtools_companion"]}}
+[1:22:08 PM] [DevTools] [Info] <== {"id":"1","result":{"/Users/elliottbrooks/dev/devtools_companion":{"extensions":[],"parseErrors":[]}}}
+Wed Feb 18 2026 [13:23:34 GMT-0800 (Pacific Standard Time)] Log file ended

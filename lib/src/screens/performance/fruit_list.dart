@@ -50,37 +50,76 @@ class _FruitTiles extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sortedFruits = List<Fruit>.from(fruitData)
+      ..sort((a, b) {
+        // Simulate complex comparison
+        return a.title.length.compareTo(b.title.length) *
+                a.title.codeUnits.fold<int>(0, (p, c) => p + c) -
+            b.title.codeUnits.fold<int>(0, (p, c) => p + c);
+      });
+
     return ListView.builder(
-      itemCount: fruitData.length * 3,
-      itemExtent: _imageSize + defaultSpacing,
+      itemCount: sortedFruits.length * 100, // Inflate list size
+      // PITFALL: Removed itemExtent to force layout of every item during scroll
+      // itemExtent: _imageSize + defaultSpacing,
       itemBuilder: (context, index) {
-        final fruit = fruitData[index % fruitData.length];
+        final fruit = sortedFruits[index % sortedFruits.length];
+
+        // PITFALL: Unnecessary nesting
         return Padding(
           padding: const EdgeInsets.all(densePadding),
-          child: ListTile(
-            onTap: () => Navigator.of(
-              context,
-            ).pushNamed(AppRoute.performanceDetails.path, arguments: fruit),
-            leading: ClipRRect(
-              borderRadius: BorderRadius.circular(4.0),
-              child: Image.asset(
-                fruit.imageUrl,
-                width: _imageSize,
-                height: _imageSize,
-                cacheWidth: 150,
-                cacheHeight: 150,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Container(
-                    width: _imageSize,
-                    height: _imageSize,
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.broken_image, color: Colors.grey),
-                  );
-                },
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  spreadRadius: 5,
+                ),
+              ],
+            ),
+            // PITFALL: Opacity triggers saveLayer which is expensive
+            child: Opacity(
+              opacity: 0.99,
+              child: ListTile(
+                onTap: () => Navigator.of(
+                  context,
+                ).pushNamed(AppRoute.performanceDetails.path, arguments: fruit),
+                leading:
+                    // PITFALL: ClipRRect with anti-aliasing is expensive if overused
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4.0),
+                      clipBehavior: Clip.antiAliasWithSaveLayer,
+                      child: Image.asset(
+                        fruit.imageUrl,
+                        width: _imageSize,
+                        height: _imageSize,
+                        // PITFALL: Removed cacheWidth/cacheHeight
+                        // cacheWidth: 150,
+                        // cacheHeight: 150,
+                        fit: BoxFit.cover,
+                        // PITFALL: High filter quality is slower
+                        filterQuality: FilterQuality.high,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: _imageSize,
+                            height: _imageSize,
+                            color: Colors.grey[200],
+                            child: const Icon(
+                              Icons.broken_image,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                title: Text(fruit.title),
+                subtitle: Text(
+                  'Length: ${fruit.title.length} characters\nHash: ${fruit.hashCode}',
+                ),
               ),
             ),
-            title: Text(fruit.title),
           ),
         );
       },
