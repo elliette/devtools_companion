@@ -28,6 +28,9 @@ class HttpServer {
         await request.response.flush();
       }
       if (path.contains('complete/')) {
+        // Wait 3 seconds before completing the response, in order to allow a
+        // request to be cancelled.
+        await Future.delayed(const Duration(seconds: 3));
         await request.response.close();
       }
     });
