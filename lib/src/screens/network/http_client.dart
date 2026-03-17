@@ -345,11 +345,7 @@ class HttpClient {
     [
       '/',
       if (responseHasBody) 'responseHasBody/',
-      if (completionType ==
-          CompletionType
-              .completes /*||
-          completionType == CompletionType.isCancelled*/ )
-        'complete/',
+      if (completionType == CompletionType.completes) 'complete/',
     ].join(),
     {'responseCode': '$responseCode'},
   );
