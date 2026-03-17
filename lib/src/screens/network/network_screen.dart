@@ -55,7 +55,7 @@ class _RequestSettings {
     required bool requestHasBody,
     required int responseCode,
     required bool responseHasBody,
-    bool shouldComplete,
+    CompletionType completionType,
   })
   action;
 
@@ -64,7 +64,7 @@ class _RequestSettings {
   bool requestCanHaveBody;
   int responseCode = 200;
   bool responseHasBody = true;
-  bool shouldComplete = true;
+  CompletionType completionType = CompletionType.completes;
   bool shouldRepeat = false;
 }
 
@@ -239,12 +239,6 @@ class _RequestTableState extends State<RequestTable> {
                                 setState(() => settings.responseHasBody = val),
                           ),
                           _buildCheckboxRow(
-                            label: 'Completes',
-                            value: settings.shouldComplete,
-                            onChanged: (val) =>
-                                setState(() => settings.shouldComplete = val),
-                          ),
-                          _buildCheckboxRow(
                             label: 'Repeats',
                             value: settings.shouldRepeat,
                             onChanged: (val) =>
@@ -252,6 +246,35 @@ class _RequestTableState extends State<RequestTable> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: denseSpacing),
+                      Row(
+                        children: [
+                          Text(
+                            'Completion: ',
+                            style: ShadTheme.of(context).textTheme.small,
+                          ),
+                          Expanded(
+                            child: ShadSelect<CompletionType>(
+                              initialValue: settings.completionType,
+                              onChanged: (val) => setState(
+                                () => settings.completionType = val!,
+                              ),
+                              options:
+                                  CompletionType.values
+                                      .map(
+                                        (e) => ShadOption(
+                                          value: e,
+                                          child: Text(e.text),
+                                        ),
+                                      )
+                                      .toList(),
+                              selectedOptionBuilder:
+                                  (context, value) => Text(value.text),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: denseSpacing),
                       SizedBox(
                         width: double.infinity,
                         child: ShadButton(
@@ -332,7 +355,7 @@ class _RequestTableState extends State<RequestTable> {
       requestHasBody: settings.requestHasBody ?? false,
       responseCode: settings.responseCode,
       responseHasBody: settings.responseHasBody,
-      shouldComplete: settings.shouldComplete,
+      completionType: settings.completionType,
     );
   }
 }
