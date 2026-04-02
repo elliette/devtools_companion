@@ -18,7 +18,7 @@ class _FruitsListState extends State<FruitsList> {
   @override
   void initState() {
     super.initState();
-    _fruitData = compute(Fruit.parseJson, fruitDataStr);
+    _fruitData = Future.value(Fruit.parseJson(fruitDataStr));
   }
 
   @override
